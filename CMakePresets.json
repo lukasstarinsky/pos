@@ -1,0 +1,21 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 26,
+      "patch": 0
+    },
+    "configurePresets": [
+      {
+        "name": "build",
+        "displayName": "Build",
+        "description": "Default build configuration",
+        "generator": "Unix Makefiles",
+        "binaryDir": "${sourceDir}/build",
+        "cacheVariables": {
+        },
+        "environment": {
+        }
+      }
+    ]
+  }
