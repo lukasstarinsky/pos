@@ -5,6 +5,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 project(pos LANGUAGES CXX)
 
-add_executable(${PROJECT_NAME} 
-    src/Main.cpp
-)
+if(WIN32)
+    add_subdirectory(Client)
+else()
+    add_subdirectory(Server)
+endif()
