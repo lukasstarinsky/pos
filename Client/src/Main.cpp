@@ -21,7 +21,7 @@ int main()
     addrInfo.ai_socktype = SOCK_STREAM;
 
     addrinfo* addrInfoResult = nullptr;
-    result = getaddrinfo("frios2.fri.uniza.sk", "16969", &addrInfo, &addrInfoResult);
+    result = getaddrinfo("frios2.fri.uniza.sk", "16691", &addrInfo, &addrInfoResult);
     if (result != 0) {
         WSACleanup();
         throw std::runtime_error("getaddrinfo failed with error: " + std::to_string(result) + "\n");
