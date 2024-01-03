@@ -5,8 +5,13 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 project(Client LANGUAGES CXX)
 
-add_executable(${PROJECT_NAME}
-    src/Main.cpp
+file(GLOB_RECURSE src
+    "src/*.cpp"
+    "src/*.hpp"
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ws2_32)
+add_executable(${PROJECT_NAME} ${src})
+
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
+endif()

@@ -5,6 +5,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 project(Server LANGUAGES CXX)
 
-add_executable(${PROJECT_NAME}
-    src/Main.cpp
+file(GLOB_RECURSE src
+    "src/*.cpp"
+    "src/*.hpp"
 )
+
+add_executable(${PROJECT_NAME} ${src})
