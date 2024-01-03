@@ -3,14 +3,47 @@
 #include <Blaze.hpp>
 
 inline constexpr f32 cubeVertices[] = {
-    -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-     0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+    0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+    0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
 inline constexpr u32 cubeIndices[] = {
@@ -25,13 +58,22 @@ inline constexpr u32 cubeIndices[] = {
 class Cube
 {
 public:
-    Cube();
+    Cube(bool light = false);
 
     void Draw(const Camera& camera) const;
+    void DrawLit(const Camera& camera, const std::unique_ptr<Cube>& lightSource) const;
+
+    void SetScale(const glm::vec3& scale);
+    void SetPosition(const glm::vec3& position);
+    void SetColor(const glm::vec3& color);
+
+    glm::mat4 GetModelMatrix() const;
+public:
+    glm::vec3 Position;
+    glm::vec3 Rotation;
+    glm::vec3 Scale;
+    glm::vec3 Color;
 private:
     std::shared_ptr<VertexArray> m_CubeVA;
     std::shared_ptr<Shader> m_Shader;
-    glm::vec3 m_Scale;
-    glm::vec3 m_Rotation;
-    glm::vec3 m_Position;
 };

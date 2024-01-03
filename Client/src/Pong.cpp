@@ -2,10 +2,15 @@
 
 Pong::Pong(const ApplicationProperties& appProperties)
     : Application(appProperties),
-      m_Camera(CameraProjection::Perspective, {0.0f, 0.0f, 0.0f}, appProperties.WindowWidth, appProperties.WindowHeight, 45.0f, 0.1f, 100.0f),
-      m_Cube()
+      m_Camera(CameraProjection::Perspective, {0.0f, 0.0f, 0.0f}, appProperties.WindowWidth, appProperties.WindowHeight, 45.0f, 0.1f, 100.0f)
 {
-    SET_EVENT_LISTENER(EventCategory::ApplicationEvent, Pong::OnAppEvent);
+    m_LightSource = std::make_unique<Cube>(true);
+    m_LightSource->SetColor(glm::vec3(1.0f));
+
+    m_DebugCube = std::make_unique<Cube>();
+    m_Floor = std::make_unique<Cube>();
+    m_Floor->SetScale({500, 1, 500});
+    m_Floor->SetPosition({0, 0, 0});
 }
 
 Pong::~Pong()
@@ -46,19 +51,51 @@ void Pong::OnRender()
     Renderer::SetClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     Renderer::ClearBuffer();
 
-    m_Cube.Draw(m_Camera);
-
-    GraphicsContext::SwapBuffers();
+    m_LightSource->Draw(m_Camera);
+    m_Floor->DrawLit(m_Camera, m_LightSource);
+    m_DebugCube->DrawLit(m_Camera, m_LightSource);
 }
 
-bool Pong::OnAppEvent(Event& e)
+static void GenerateCode(const std::unique_ptr<Cube>& cube)
 {
-    const auto& appEvent = e.As<const ApplicationEvent&>();
+    BLAZE_INFO("\n"
+               "std::unique_ptr<Cube> cube = std::make_unique<Cube>();\n"
+               "cube->SetScale({{{}, {}, {}}});\n"
+               "cube->SetPosition({{{}, {}, {}}});\n",
+               cube->Scale.x, cube->Scale.y, cube->Scale.z,
+               cube->Position.x, cube->Position.y, cube->Position.z);
+}
 
-    if (appEvent.GetType() == ApplicationEventType::Resize)
+void Pong::OnImGUIRender()
+{
+    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+    ImGui::Begin("Debug");
     {
-        m_Camera.SetProjection(CameraProjection::Perspective, appEvent.Width, appEvent.Height, 45.0f, 0.1f, 100.0f);
-    }
+        if (ImGui::TreeNode("Cubes"))
+        {
+            ImGui::CollapsingHeader("Cube 1");
+            ImGui::DragFloat3("Position", (float*)&m_DebugCube->Position, 0.2f);
+            ImGui::DragFloat3("Rotation", (float*)&m_DebugCube->Rotation, 0.2f);
+            ImGui::DragFloat3("Scale", (float*)&m_DebugCube->Scale, 0.2f);
+            if (ImGui::Button("Generate code"))
+            {
+                GenerateCode(m_DebugCube);
+            }
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Light"))
+        {
+            ImGui::CollapsingHeader("Light");
+            ImGui::DragFloat3("Position", (float*)&m_LightSource->Position, 0.2f);
+            ImGui::ColorPicker3("Color", (f32*)&m_LightSource->Color);
 
-    return false;
+            ImGui::TreePop();
+        }
+    }
+    ImGui::End();
+}
+
+void Pong::OnResize()
+{
+    m_Camera.SetViewport(m_Properties.WindowWidth, m_Properties.WindowHeight);
 }

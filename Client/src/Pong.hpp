@@ -11,9 +11,11 @@ public:
 
     void OnUpdate(f64 deltaTimeSeconds) override;
     void OnRender() override;
-
-    bool OnAppEvent(Event& e);
+    void OnImGUIRender() override;
+    void OnResize() override;
 private:
-    Cube m_Cube;
+    std::unique_ptr<Cube> m_LightSource;
+    std::unique_ptr<Cube> m_Floor;
+    std::unique_ptr<Cube> m_DebugCube;
     Camera m_Camera;
 };
