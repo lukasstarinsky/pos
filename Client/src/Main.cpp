@@ -1,17 +1,21 @@
-#include <iostream>
-#include "Socket/Socket.hpp"
+#include "Pong.hpp"
 
 int main()
 {
     try
     {
-        auto socket = Socket::CreateConnection("frios2.fri.uniza.sk", 16912);
+        ApplicationProperties appProperties = {};
+        appProperties.WindowTitle = "Multiplayer Pong";
+        appProperties.WindowWidth = 800;
+        appProperties.WindowHeight = 600;
+        appProperties.RendererBackendAPI = RendererBackendAPI::OpenGL;
 
-        socket->SendData("Negri su zli velmi moc.");
+        std::unique_ptr<Application> app = std::make_unique<Pong>(appProperties);
+        app->Run();
     }
     catch (const std::exception& e)
     {
-        std::cerr << "Exception thrown: " << e.what() << std::endl;
+        BLAZE_ERROR("{}", e.what());
     }
 
     return 0;
