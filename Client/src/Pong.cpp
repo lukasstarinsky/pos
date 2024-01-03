@@ -7,6 +7,26 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_LightSource = std::make_unique<Cube>(true);
     m_LightSource->SetColor(glm::vec3(1.0f));
 
+    m_Map.emplace_back(std::make_unique<Cube>());
+    m_Map[m_Map.size() - 1]->SetColor({0.0f, 0.9f, 0.0f});
+    m_Map[m_Map.size() - 1]->SetScale({180, 10, 3});
+    m_Map[m_Map.size() - 1]->SetPosition({0, 0, 0});
+
+    m_Map.emplace_back(std::make_unique<Cube>());
+    m_Map[m_Map.size() - 1]->SetColor({0.0f, 0.9f, 0.0f});
+    m_Map[m_Map.size() - 1]->SetScale({180, 10, 3});
+    m_Map[m_Map.size() - 1]->SetPosition({0, 0, 180});
+
+    m_Map.emplace_back(std::make_unique<Cube>());
+    m_Map[m_Map.size() - 1]->SetColor({0.0f, 0.9f, 0.0f});
+    m_Map[m_Map.size() - 1]->SetScale({3, 10, 183});
+    m_Map[m_Map.size() - 1]->SetPosition({90, 0, 90});
+
+    m_Map.emplace_back(std::make_unique<Cube>());
+    m_Map[m_Map.size() - 1]->SetColor({0.0f, 0.9f, 0.0f});
+    m_Map[m_Map.size() - 1]->SetScale({3, 10, 183});
+    m_Map[m_Map.size() - 1]->SetPosition({-90, 0, 90});
+
     m_DebugCube = std::make_unique<Cube>();
     m_Floor = std::make_unique<Cube>();
     m_Floor->SetScale({500, 1, 500});
@@ -54,14 +74,17 @@ void Pong::OnRender()
     m_LightSource->Draw(m_Camera);
     m_Floor->DrawLit(m_Camera, m_LightSource);
     m_DebugCube->DrawLit(m_Camera, m_LightSource);
+    for (const auto &item: m_Map) {
+        item->DrawLit(m_Camera, m_LightSource);
+    }
 }
 
 static void GenerateCode(const std::unique_ptr<Cube>& cube)
 {
-    BLAZE_INFO("\n"
-               "std::unique_ptr<Cube> cube = std::make_unique<Cube>();\n"
-               "cube->SetScale({{{}, {}, {}}});\n"
-               "cube->SetPosition({{{}, {}, {}}});\n",
+    BLAZE_INFO("\nm_Map.emplace_back(std::make_unique<Cube>());\n"
+               "m_Map[m_Map.size() - 1]->SetColor({{0.0f, 1.0f, 0.0f}});\n"
+               "m_Map[m_Map.size() - 1]->SetScale({{{}, {}, {}}});\n"
+               "m_Map[m_Map.size() - 1]->SetPosition({{{}, {}, {}}});\n",
                cube->Scale.x, cube->Scale.y, cube->Scale.z,
                cube->Position.x, cube->Position.y, cube->Position.z);
 }
@@ -77,6 +100,7 @@ void Pong::OnImGUIRender()
             ImGui::DragFloat3("Position", (float*)&m_DebugCube->Position, 0.2f);
             ImGui::DragFloat3("Rotation", (float*)&m_DebugCube->Rotation, 0.2f);
             ImGui::DragFloat3("Scale", (float*)&m_DebugCube->Scale, 0.2f);
+            ImGui::ColorPicker3("Color", (f32*)&m_DebugCube->Color);
             if (ImGui::Button("Generate code"))
             {
                 GenerateCode(m_DebugCube);

@@ -14,6 +14,7 @@ public:
     void OnImGUIRender() override;
     void OnResize() override;
 private:
+    std::vector<std::unique_ptr<Cube>> m_Map;
     std::unique_ptr<Cube> m_LightSource;
     std::unique_ptr<Cube> m_Floor;
     std::unique_ptr<Cube> m_DebugCube;
