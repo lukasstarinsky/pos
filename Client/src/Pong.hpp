@@ -18,5 +18,7 @@ private:
     std::unique_ptr<Cube> m_LightSource;
     std::unique_ptr<Cube> m_Floor;
     std::unique_ptr<Cube> m_DebugCube;
+    std::unique_ptr<Cube> m_Player;
+    std::unique_ptr<Cube> m_Opponent;
     Camera m_Camera;
 };

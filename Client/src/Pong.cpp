@@ -8,24 +8,36 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_LightSource->SetColor(glm::vec3(1.0f));
 
     m_Map.emplace_back(std::make_unique<Cube>());
-    m_Map[m_Map.size() - 1]->SetColor({0.0f, 0.9f, 0.0f});
-    m_Map[m_Map.size() - 1]->SetScale({180, 10, 3});
-    m_Map[m_Map.size() - 1]->SetPosition({0, 0, 0});
+    m_Map[m_Map.size() - 1]->SetColor({0.0f, 1.0f, 0.0f});
+    m_Map[m_Map.size() - 1]->SetScale({228, 10, 3});
+    m_Map[m_Map.size() - 1]->SetPosition({0, 0, -90});
 
     m_Map.emplace_back(std::make_unique<Cube>());
-    m_Map[m_Map.size() - 1]->SetColor({0.0f, 0.9f, 0.0f});
-    m_Map[m_Map.size() - 1]->SetScale({180, 10, 3});
-    m_Map[m_Map.size() - 1]->SetPosition({0, 0, 180});
+    m_Map[m_Map.size() - 1]->SetColor({0.0f, 1.0f, 0.0f});
+    m_Map[m_Map.size() - 1]->SetScale({228, 10, 3});
+    m_Map[m_Map.size() - 1]->SetPosition({0, 0, 90});
 
     m_Map.emplace_back(std::make_unique<Cube>());
-    m_Map[m_Map.size() - 1]->SetColor({0.0f, 0.9f, 0.0f});
+    m_Map[m_Map.size() - 1]->SetColor({0.0f, 1.0f, 0.0f});
     m_Map[m_Map.size() - 1]->SetScale({3, 10, 183});
-    m_Map[m_Map.size() - 1]->SetPosition({90, 0, 90});
+    m_Map[m_Map.size() - 1]->SetPosition({115, 0, 0});
 
     m_Map.emplace_back(std::make_unique<Cube>());
-    m_Map[m_Map.size() - 1]->SetColor({0.0f, 0.9f, 0.0f});
+    m_Map[m_Map.size() - 1]->SetColor({0.0f, 1.0f, 0.0f});
     m_Map[m_Map.size() - 1]->SetScale({3, 10, 183});
-    m_Map[m_Map.size() - 1]->SetPosition({-90, 0, 90});
+    m_Map[m_Map.size() - 1]->SetPosition({-115, 0, 0});
+
+    //Player 1
+    m_Player = std::make_unique<Cube>();
+    m_Player->SetColor({0.0f, 0.0f, 1.0f});
+    m_Player->SetScale({3, 10, 30});
+    m_Player->SetPosition({-100, 0, 0});
+
+    //Player 2
+    m_Opponent = std::make_unique<Cube>();
+    m_Opponent->SetColor({0.0f, 0.0f, 1.0f});
+    m_Opponent->SetScale({3, 10, 30});
+    m_Opponent->SetPosition({100, 0, 0});
 
     m_DebugCube = std::make_unique<Cube>();
     m_Floor = std::make_unique<Cube>();
@@ -74,6 +86,8 @@ void Pong::OnRender()
     m_LightSource->Draw(m_Camera);
     m_Floor->DrawLit(m_Camera, m_LightSource);
     m_DebugCube->DrawLit(m_Camera, m_LightSource);
+    m_Player->DrawLit(m_Camera, m_LightSource);
+    m_Opponent->DrawLit(m_Camera, m_LightSource);
     for (const auto &item: m_Map) {
         item->DrawLit(m_Camera, m_LightSource);
     }
