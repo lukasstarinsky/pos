@@ -15,9 +15,8 @@ public:
     void OnResize() override;
 private:
     std::vector<std::unique_ptr<Cube>> m_Map;
-    std::unique_ptr<Cube> m_LightSource;
+    std::unique_ptr<Cube> m_Ball;
     std::unique_ptr<Cube> m_Floor;
-    std::unique_ptr<Cube> m_DebugCube;
     std::unique_ptr<Cube> m_Player;
     std::unique_ptr<Cube> m_Opponent;
     Camera m_Camera;

@@ -1,5 +1,5 @@
-#include "Cube.hpp"
 #include <glad/gl.h>
+#include "Cube.hpp"
 
 Cube::Cube(bool light)
     : Scale(1.0f), Rotation(0.0f), Position(0.0f), Color({1.0f, 0.5f, 0.31f})
