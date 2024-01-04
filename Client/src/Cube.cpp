@@ -65,6 +65,9 @@ void Cube::SetColor(const glm::vec3& color)
 glm::mat4 Cube::GetModelMatrix() const
 {
     glm::mat4 out = glm::translate(glm::mat4(1.0f), Position);
+    out = glm::rotate(out, Rotation.x, {1.0f, 0.0f, 0.0f});
+    out = glm::rotate(out, Rotation.y, {0.0f, 1.0f, 0.0f});
+    out = glm::rotate(out, Rotation.z, {0.0f, 0.0f, 1.0f});
     out = glm::scale(out, Scale);
     return out;
 }
