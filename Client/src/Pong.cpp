@@ -7,6 +7,8 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_LightSource = std::make_unique<Cube>(true);
     m_LightSource->SetColor(glm::vec3(1.0f));
 
+    //Borders/Walls
+
     m_Map.emplace_back(std::make_unique<Cube>());
     m_Map[m_Map.size() - 1]->SetColor({0.0f, 1.0f, 0.0f});
     m_Map[m_Map.size() - 1]->SetScale({228, 10, 3});
@@ -26,6 +28,28 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_Map[m_Map.size() - 1]->SetColor({0.0f, 1.0f, 0.0f});
     m_Map[m_Map.size() - 1]->SetScale({3, 10, 183});
     m_Map[m_Map.size() - 1]->SetPosition({-115, 0, 0});
+
+    //Lines
+
+    m_Map.emplace_back(std::make_unique<Cube>());
+    m_Map[m_Map.size() - 1]->SetColor({1.0f, 1.0f, 1.0f});
+    m_Map[m_Map.size() - 1]->SetScale({3, 1.25, 30});
+    m_Map[m_Map.size() - 1]->SetPosition({0, 0, -63});
+
+    m_Map.emplace_back(std::make_unique<Cube>());
+    m_Map[m_Map.size() - 1]->SetColor({1.0f, 1.0f, 1.0f});
+    m_Map[m_Map.size() - 1]->SetScale({3, 1.25, 30});
+    m_Map[m_Map.size() - 1]->SetPosition({0, 0, -21});
+
+    m_Map.emplace_back(std::make_unique<Cube>());
+    m_Map[m_Map.size() - 1]->SetColor({1.0f, 1.0f, 1.0f});
+    m_Map[m_Map.size() - 1]->SetScale({3, 1.25, 30});
+    m_Map[m_Map.size() - 1]->SetPosition({0, 0, 21});
+
+    m_Map.emplace_back(std::make_unique<Cube>());
+    m_Map[m_Map.size() - 1]->SetColor({1.0f, 1.0f, 1.0f});
+    m_Map[m_Map.size() - 1]->SetScale({3, 1.25, 30});
+    m_Map[m_Map.size() - 1]->SetPosition({0, 0, 63});
 
     //Player 1
     m_Player = std::make_unique<Cube>();
