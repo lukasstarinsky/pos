@@ -16,7 +16,7 @@ int main()
     }
     catch (const std::exception& e)
     {
-        BLAZE_ERROR("{}", e.what());
+        LOG_INFO("{}", e.what());
     }
 
     return 0;

@@ -4,7 +4,6 @@ Pong::Pong(const ApplicationProperties& appProperties)
     : Application(appProperties),
       m_Camera(CameraProjection::Perspective, {0.0f, 275.0f, 0.0f}, appProperties.WindowWidth, appProperties.WindowHeight, 45.0f, 0.1f, 100.0f)
 {
-
     // Floor
     m_Floor = std::make_unique<Cube>();
     m_Floor->SetScale({500, 1, 500});
@@ -58,12 +57,12 @@ Pong::Pong(const ApplicationProperties& appProperties)
     //Player 1
     m_Player = std::make_unique<Cube>(true);
     m_Player->SetScale({10, 10, 40});
-    m_Player->SetPosition({-100, 0, 0});
+    m_Player->SetPosition({-125, 0, 0});
 
     //Player 2
     m_Opponent = std::make_unique<Cube>(true);
     m_Opponent->SetScale({10, 10, 40});
-    m_Opponent->SetPosition({100, 0, 0});
+    m_Opponent->SetPosition({125, 0, 0});
 }
 
 Pong::~Pong()
@@ -72,31 +71,26 @@ Pong::~Pong()
 
 void Pong::OnUpdate(f64 deltaTimeSeconds)
 {
-//    if (Input::IsKeyDown(Key::W))
-//    {
-//        m_Camera.MoveZ(-0.5f);
-//    }
-//    else if (Input::IsKeyDown(Key::S))
-//    {
-//        m_Camera.MoveZ(0.5f);
-//    }
-//
-//    if (Input::IsKeyDown(Key::A))
-//    {
-//        m_Camera.MoveX(-0.5f);
-//    }
-//    else if (Input::IsKeyDown(Key::D))
-//    {
-//        m_Camera.MoveX(0.5f);
-//    }
-//
-//    if (Input::IsButtonDown(Button::Left))
-//    {
-//        while (const auto mouseDelta = Input::ReadMouseRawDelta())
-//        {
-//            m_Camera.Rotate((f32)mouseDelta->x * 0.15f, (f32)-mouseDelta->y * 0.15f);
-//        }
-//    }
+    if (Input::IsKeyDown(Key::UpArrow) || Input::IsKeyDown(Key::W))
+    {
+        m_Player->Position.z -= 80.0f * (f32)deltaTimeSeconds;
+
+        f32 wallPos = m_Map[0]->Position.z + m_Map[0]->Scale.z;
+        if (m_Player->Position.z - m_Player->Scale.z / 2 < wallPos)
+        {
+            m_Player->Position.z = wallPos + m_Player->Scale.z / 2;
+        }
+    }
+    else if (Input::IsKeyDown(Key::DownArrow) || Input::IsKeyDown(Key::S))
+    {
+        m_Player->Position.z += 80.0f * (f32)deltaTimeSeconds;
+
+        f32 wallPos = m_Map[1]->Position.z - m_Map[1]->Scale.z;
+        if (m_Player->Position.z + m_Player->Scale.z / 2 > wallPos)
+        {
+            m_Player->Position.z = wallPos - m_Player->Scale.z / 2;
+        }
+    }
 }
 
 void Pong::OnRender()
