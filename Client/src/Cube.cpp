@@ -1,4 +1,6 @@
 #include <glad/gl.h>
+#include <glm/gtx/color_space.hpp>
+#include <random>
 #include "Cube.hpp"
 
 Cube::Cube(bool light)
@@ -60,6 +62,19 @@ void Cube::SetPosition(const glm::vec3& position)
 void Cube::SetColor(const glm::vec3& color)
 {
     Color = color;
+}
+
+void Cube::SetHSVColor(const glm::vec3& color)
+{
+    Color = glm::rgbColor(color);
+}
+
+void Cube::SetRandomColor()
+{
+    static std::default_random_engine rndEng(Platform::GetTimeSeconds());
+    static std::uniform_real_distribution dist(0.0f, 255.0f);
+
+    Color = glm::rgbColor(glm::vec3{ dist(rndEng), 1.0f, 1.0f });
 }
 
 glm::mat4 Cube::GetModelMatrix() const

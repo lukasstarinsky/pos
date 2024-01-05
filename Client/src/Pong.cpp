@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Pong.hpp"
 
 Pong::Pong(const ApplicationProperties& appProperties)
@@ -91,6 +92,54 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
             m_Player->Position.z = wallPos - m_Player->Scale.z / 2;
         }
     }
+
+    UpdateBall(deltaTimeSeconds);
+}
+
+void Pong::UpdateBall(f64 deltaTimeSeconds) {
+    /*const static f64 PI = 3.14159265359f / 180.0;
+    static f64 rotation = 90;
+
+    f64 vector[] = {cos(rotation * PI), sin(rotation * PI)};*/
+    static f64 vector[] = {-1, -1};
+    f64 nextPosition[] = {m_Ball->Position.x + vector[0] * deltaTimeSeconds * 60, m_Ball->Position.z + vector[1] * deltaTimeSeconds * 60};
+
+    if (abs(nextPosition[0] + m_Ball->Scale.x / 2.0f) > (m_Map[2]->Position.x - m_Map[2]->Scale.x / 2.0f) ||
+        abs(nextPosition[0] - m_Ball->Scale.x / 2.0f) > (m_Map[2]->Position.x - m_Map[2]->Scale.x / 2.0f)) {
+        m_Ball->SetRandomColor();
+        vector[0] = -vector[0];/*
+        m_Ball->Position.x = 0;
+        m_Ball->Position.z = 0;*/
+        return;
+    }
+
+    if (abs(nextPosition[1] + m_Ball->Scale.z / 2.0f) > (m_Map[1]->Position.z - m_Map[1]->Scale.z / 2.0f) ||
+        abs(nextPosition[1] - m_Ball->Scale.z / 2.0f) > (m_Map[1]->Position.z - m_Map[1]->Scale.z / 2.0f)) {
+        vector[1] = -vector[1];
+        //m_Ball->SetRandomColor();
+        return;
+    }
+
+    if (nextPosition[0] - m_Ball->Scale.x / 2.0f <= (m_Player->Position.x + m_Player->Scale.x / 2.0f) &&
+        nextPosition[1] + m_Ball->Scale.z / 2.0f >= (m_Player->Position.z - m_Player->Scale.z / 2.0f) &&
+        nextPosition[1] - m_Ball->Scale.z / 2.0f < (m_Player->Position.z + m_Player->Scale.z / 2.0f) &&
+        vector[0] < 0) {
+        vector[0] = -vector[0];
+        m_Ball->SetRandomColor();
+        return;
+    }
+
+    if (nextPosition[0] + m_Ball->Scale.x / 2.0f >= (m_Opponent->Position.x - m_Opponent->Scale.x / 2.0f) &&
+        nextPosition[1] - m_Ball->Scale.z / 2.0f <= (m_Opponent->Position.z + m_Opponent->Scale.z / 2.0f) &&
+        nextPosition[1] + m_Ball->Scale.z / 2.0f > (m_Opponent->Position.z - m_Opponent->Scale.z / 2.0f) &&
+        vector[0] > 0) {
+        vector[0] = -vector[0];
+        m_Ball->SetRandomColor();
+        return;
+    }
+
+    m_Ball->Position.x = nextPosition[0];
+    m_Ball->Position.z = nextPosition[1];
 }
 
 void Pong::OnRender()

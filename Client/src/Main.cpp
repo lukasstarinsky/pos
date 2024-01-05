@@ -9,7 +9,7 @@ int main()
         appProperties.WindowWidth = 1280;
         appProperties.WindowHeight = 960;
         appProperties.RendererBackendAPI = RendererBackendAPI::OpenGL;
-        appProperties.WithImGUI = false;
+        appProperties.WithImGUI = true;
 
         std::unique_ptr<Application> app = std::make_unique<Pong>(appProperties);
         app->Run();

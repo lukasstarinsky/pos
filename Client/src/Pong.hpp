@@ -14,6 +14,7 @@ public:
     void OnImGUIRender() override;
     void OnResize() override;
 private:
+    void UpdateBall(f64 deltaTimeSeconds);
     std::vector<std::unique_ptr<Cube>> m_Map;
     std::unique_ptr<Cube> m_Ball;
     std::unique_ptr<Cube> m_Floor;

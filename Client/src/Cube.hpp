@@ -66,6 +66,8 @@ public:
     void SetScale(const glm::vec3& scale);
     void SetPosition(const glm::vec3& position);
     void SetColor(const glm::vec3& color);
+    void SetHSVColor(const glm::vec3& color);
+    void SetRandomColor();
 
     glm::mat4 GetModelMatrix() const;
 public:
