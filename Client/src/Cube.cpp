@@ -59,15 +59,10 @@ void Cube::SetPosition(const glm::vec3& position)
     Position = position;
 }
 
-void Cube::SetColor(const glm::vec3& color)
-{
-    Color = color;
-}
-
 void Cube::SetRandomColor()
 {
     static std::default_random_engine rndEng(Platform::GetTimeSeconds());
-    static std::uniform_real_distribution dist(0.0f, 255.0f);
+    static std::uniform_real_distribution dist(20.0f, 230.0f);
 
     Color = glm::rgbColor(glm::vec3{ dist(rndEng), 1.0f, 1.0f });
 }
