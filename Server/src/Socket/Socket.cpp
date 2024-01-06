@@ -44,6 +44,11 @@ SocketServer::~SocketServer()
     close(m_Socket);
 }
 
+std::unique_ptr<SocketServer> SocketServer::Create(int port)
+{
+    return std::make_unique<SocketServer>(port);
+}
+
 SocketConnection SocketServer::AcceptConnection()
 {
     int connection = accept(m_Socket, (sockaddr*)&g_Addr, &g_AddrLength);
@@ -70,6 +75,11 @@ bool SocketConnection::ReadData(std::string* outData) const
     char buffer[256];
     if (read(m_Connection, &buffer, sizeof(buffer)) <= 0)
     {
+        std::cout << "Failed: " << buffer << std::endl;
+        if (outData)
+        {
+            *outData = "";
+        }
         return false;
     }
 
@@ -78,11 +88,6 @@ bool SocketConnection::ReadData(std::string* outData) const
         *outData = std::string(buffer);
     }
     return true;
-}
-
-std::unique_ptr<SocketServer> SocketServer::Create(int port)
-{
-    return std::make_unique<SocketServer>(port);
 }
 #endif
 #pragma endregion

@@ -71,6 +71,9 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_Opponent = std::make_unique<Cube>(true);
     m_Opponent->SetScale({3, 10, 30});
     m_Opponent->SetPosition({125, 0, 0});
+
+    // Socket
+    m_Socket = Socket::CreateConnection("frios2.fri.uniza.sk", 12694);
 }
 
 Pong::~Pong()

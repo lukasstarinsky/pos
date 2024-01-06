@@ -2,6 +2,7 @@
 
 #include <Blaze.hpp>
 #include "Cube.hpp"
+#include "Socket/Socket.hpp"
 
 class Pong : public Application
 {
@@ -24,4 +25,6 @@ private:
     std::unique_ptr<Cube> m_Player;
     std::unique_ptr<Cube> m_Opponent;
     std::unique_ptr<Camera> m_Camera;
+
+    std::unique_ptr<Socket> m_Socket;
 };
