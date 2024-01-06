@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Pong.hpp"
 
 Pong::Pong(const ApplicationProperties& appProperties)
@@ -57,12 +56,12 @@ Pong::Pong(const ApplicationProperties& appProperties)
 
     //Player 1
     m_Player = std::make_unique<Cube>(true);
-    m_Player->SetScale({10, 10, 40});
+    m_Player->SetScale({3, 10, 40});
     m_Player->SetPosition({-125, 0, 0});
 
     //Player 2
     m_Opponent = std::make_unique<Cube>(true);
-    m_Opponent->SetScale({10, 10, 40});
+    m_Opponent->SetScale({3, 10, 40});
     m_Opponent->SetPosition({125, 0, 0});
 }
 
@@ -74,22 +73,22 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
 {
     if (Input::IsKeyDown(Key::UpArrow) || Input::IsKeyDown(Key::W))
     {
+        f32 oldZ = m_Player->Position.z;
         m_Player->Position.z -= 80.0f * (f32)deltaTimeSeconds;
 
-        f32 wallPos = m_Map[0]->Position.z + m_Map[0]->Scale.z;
-        if (m_Player->Position.z - m_Player->Scale.z / 2 < wallPos)
+        if (Cube::CheckCollision(*m_Player, *m_Map[0]))
         {
-            m_Player->Position.z = wallPos + m_Player->Scale.z / 2;
+            m_Player->Position.z = oldZ;
         }
     }
     else if (Input::IsKeyDown(Key::DownArrow) || Input::IsKeyDown(Key::S))
     {
+        f32 oldZ = m_Player->Position.z;
         m_Player->Position.z += 80.0f * (f32)deltaTimeSeconds;
 
-        f32 wallPos = m_Map[1]->Position.z - m_Map[1]->Scale.z;
-        if (m_Player->Position.z + m_Player->Scale.z / 2 > wallPos)
+        if (Cube::CheckCollision(*m_Player, *m_Map[1]))
         {
-            m_Player->Position.z = wallPos - m_Player->Scale.z / 2;
+            m_Player->Position.z = oldZ;
         }
     }
 
@@ -97,49 +96,48 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
 }
 
 void Pong::UpdateBall(f64 deltaTimeSeconds) {
-    /*const static f64 PI = 3.14159265359f / 180.0;
-    static f64 rotation = 90;
+    // Todo: reset and start in random direction
+    static glm::vec3 direction(-1.0f);
+    static f32 ballMovementSpeed = 60.0f;
 
-    f64 vector[] = {cos(rotation * PI), sin(rotation * PI)};*/
-    static f64 vector[] = {-1, -1};
-    f64 nextPosition[] = {m_Ball->Position.x + vector[0] * deltaTimeSeconds * 60, m_Ball->Position.z + vector[1] * deltaTimeSeconds * 60};
+    glm::vec3 originalPosition = m_Ball->Position;
+    m_Ball->Position.x += direction.x * ballMovementSpeed * (f32)deltaTimeSeconds;
+    m_Ball->Position.z += direction.z * ballMovementSpeed * (f32)deltaTimeSeconds;
 
-    if (abs(nextPosition[0] + m_Ball->Scale.x / 2.0f) > (m_Map[2]->Position.x - m_Map[2]->Scale.x / 2.0f) ||
-        abs(nextPosition[0] - m_Ball->Scale.x / 2.0f) > (m_Map[2]->Position.x - m_Map[2]->Scale.x / 2.0f)) {
+    // Top & bottom wall
+    if (Cube::CheckCollision(*m_Ball, *m_Map[0]) || Cube::CheckCollision(*m_Ball, *m_Map[1]))
+    {
+        direction.z = -direction.z;
+        m_Ball->Position = originalPosition;
+        return;
+    }
+
+    // Left & right wall
+    if (Cube::CheckCollision(*m_Ball, *m_Map[2]) || Cube::CheckCollision(*m_Ball, *m_Map[3]))
+    {
+        direction.x = -direction.x;
+        m_Ball->Position.x = 0.0f;
+        m_Ball->Position.z = 0.0f;
         m_Ball->SetRandomColor();
-        vector[0] = -vector[0];/*
-        m_Ball->Position.x = 0;
-        m_Ball->Position.z = 0;*/
+        // Add score
         return;
     }
 
-    if (abs(nextPosition[1] + m_Ball->Scale.z / 2.0f) > (m_Map[1]->Position.z - m_Map[1]->Scale.z / 2.0f) ||
-        abs(nextPosition[1] - m_Ball->Scale.z / 2.0f) > (m_Map[1]->Position.z - m_Map[1]->Scale.z / 2.0f)) {
-        vector[1] = -vector[1];
-        //m_Ball->SetRandomColor();
-        return;
-    }
-
-    if (nextPosition[0] - m_Ball->Scale.x / 2.0f <= (m_Player->Position.x + m_Player->Scale.x / 2.0f) &&
-        nextPosition[1] + m_Ball->Scale.z / 2.0f >= (m_Player->Position.z - m_Player->Scale.z / 2.0f) &&
-        nextPosition[1] - m_Ball->Scale.z / 2.0f < (m_Player->Position.z + m_Player->Scale.z / 2.0f) &&
-        vector[0] < 0) {
-        vector[0] = -vector[0];
-        m_Ball->SetRandomColor();
-        return;
-    }
-
-    if (nextPosition[0] + m_Ball->Scale.x / 2.0f >= (m_Opponent->Position.x - m_Opponent->Scale.x / 2.0f) &&
-        nextPosition[1] - m_Ball->Scale.z / 2.0f <= (m_Opponent->Position.z + m_Opponent->Scale.z / 2.0f) &&
-        nextPosition[1] + m_Ball->Scale.z / 2.0f > (m_Opponent->Position.z - m_Opponent->Scale.z / 2.0f) &&
-        vector[0] > 0) {
-        vector[0] = -vector[0];
+    if (Cube::CheckCollision(*m_Ball, *m_Player))
+    {
+        direction.x = -direction.x;
+        m_Ball->Position = originalPosition;
         m_Ball->SetRandomColor();
         return;
     }
 
-    m_Ball->Position.x = nextPosition[0];
-    m_Ball->Position.z = nextPosition[1];
+    if (Cube::CheckCollision(*m_Ball, *m_Opponent))
+    {
+        direction.x = -direction.x;
+        m_Ball->Position = originalPosition;
+        m_Ball->SetRandomColor();
+        return;
+    }
 }
 
 void Pong::OnRender()
@@ -151,7 +149,8 @@ void Pong::OnRender()
     m_Floor->DrawLit(m_Camera, m_Ball);
     m_Player->DrawLit(m_Camera, m_Ball);
     m_Opponent->DrawLit(m_Camera, m_Ball);
-    for (const auto &item: m_Map) {
+    for (const auto &item: m_Map)
+    {
         item->DrawLit(m_Camera, m_Ball);
     }
 }

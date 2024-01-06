@@ -64,17 +64,25 @@ void Cube::SetColor(const glm::vec3& color)
     Color = color;
 }
 
-void Cube::SetHSVColor(const glm::vec3& color)
-{
-    Color = glm::rgbColor(color);
-}
-
 void Cube::SetRandomColor()
 {
     static std::default_random_engine rndEng(Platform::GetTimeSeconds());
     static std::uniform_real_distribution dist(0.0f, 255.0f);
 
     Color = glm::rgbColor(glm::vec3{ dist(rndEng), 1.0f, 1.0f });
+}
+
+bool Cube::CheckCollision(const Cube& first, const Cube& second)
+{
+    if (glm::abs(first.Position.x - second.Position.x) < first.Scale.x / 2.0f + second.Scale.x / 2.0f)
+    {
+        if (glm::abs(first.Position.z - second.Position.z) < first.Scale.z / 2.0f + second.Scale.z / 2.0f)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 glm::mat4 Cube::GetModelMatrix() const
