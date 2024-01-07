@@ -22,6 +22,14 @@ UDPSocketServer::UDPSocketServer(int port)
         throw std::runtime_error("bind() failed.\n");
     }
 
+    timeval readTimeout;
+    readTimeout.tv_sec = 1;
+    readTimeout.tv_usec = 0;
+    if (setsockopt(m_Socket, SOL_SOCKET, SO_RCVTIMEO, &readTimeout, sizeof(readTimeout)) == -1)
+    {
+        throw std::runtime_error("setsockopt() failed.\n");
+    }
+
     std::cout << "Server running on port: " << port << std::endl;
 }
 
@@ -36,19 +44,21 @@ int UDPSocketServer::operator()() const
 }
 
 // Client
-std::string UDPSocketClient::WaitForData(int server)
+
+// 1 sec timeout
+bool UDPSocketClient::TryReadData(int server, std::string& data)
 {
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
     if (recvfrom(server, buffer, sizeof(buffer), 0, (sockaddr*)&m_SockAddr, &m_SockAddrLen) <= 0)
     {
-        std::cerr << "recfrom() failed with error code: " << errno << std::endl;
+        return false;
     }
 
     std::string output = buffer;
     std::erase(output, '\n');
-
-    return output;
+    data = output;
+    return true;
 }
 
 void UDPSocketClient::SendData(int server, const std::string& data)

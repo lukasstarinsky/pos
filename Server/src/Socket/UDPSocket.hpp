@@ -19,7 +19,7 @@ class UDPSocketClient
 public:
     UDPSocketClient() = default;
 
-    [[ nodiscard ]] std::string WaitForData(int server);
+    [[ nodiscard ]] bool TryReadData(int server, std::string& data);
     void SendData(int server, const std::string& data);
 private:
     sockaddr_in m_SockAddr = {};

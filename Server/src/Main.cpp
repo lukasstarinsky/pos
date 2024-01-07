@@ -17,16 +17,20 @@ int main()
             // Todo: thread for each player?
             std::cout << "Waiting for players to join(" << players.size() << "/2)...\n";
 
-            UDPSocketClient player;
-            std::string data = player.WaitForData(server());
-
-            if (data != "join")
+            while (players.size() < 1)
             {
-                continue;
+                UDPSocketClient player;
+                std::string data;
+                if (player.TryReadData(server(), data))
+                {
+                    if (data == "join")
+                    {
+                        std::cout << "Player connected(" << players.size() << "/2)\n";
+                        players.emplace_back(player);
+                        player.SendData(server(), "TESTING");
+                    }
+                }
             }
-
-            player.SendData(server(), "TESTING");
-            // Todo: Join user
         }
 
         std::this_thread::sleep_for(std::chrono::microseconds((1000 / 64) * 1000)); // 64 - tick ? :)
