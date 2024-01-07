@@ -79,7 +79,8 @@ Pong::Pong(const ApplicationProperties& appProperties)
     {
         m_Socket = std::make_unique<UDPSocket>("158.193.128.160", 12694);
         m_Socket->SendData("join");
-        m_ReadThread = std::thread(&Pong::SocketCommunication, this);
+        m_ReadThread = std::thread(&Pong::SocketReader, this);
+        m_SendThread = std::thread(&Pong::SocketSender, this);
     }
     catch (const std::runtime_error& e)
     {
@@ -93,17 +94,37 @@ Pong::~Pong()
     m_ReadThread.join();
 }
 
-void Pong::SocketCommunication()
+void Pong::SocketSender()
+{
+    while (true)
+    {
+        m_Socket->SendData(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+void Pong::SocketReader()
 {
     while (true)
     {
         std::string data = m_Socket->ReadData();
 
-        if (data == "START") IGNIS_INFO("Start");
-        else if (data.starts_with("ID-")) {
+        if (data == "START")
+        {
+            IGNIS_INFO("Game start");
+        }
+        else if (data.starts_with("ID-"))
+        {
             m_Player = data[3] - '0';
-        } else if (data.starts_with("Z-")) {
-            m_Players[m_Player == 0 ? 1 : 0]->Position.z = std::stof(data.substr(2));
+        }
+        else if (m_Player == 1 && data.starts_with("0Z-"))
+        {
+            m_Players[0]->Position.z = std::stof(data.substr(3));
+        }
+        else if (m_Player == 0 && data.starts_with("1Z-"))
+        {
+            m_Players[1]->Position.z = std::stof(data.substr(3));
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -123,8 +144,6 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
         {
             m_Players[m_Player]->Position.z = oldZ;
         }
-
-        m_Socket->SendData("Z-" + std::to_string(m_Players[m_Player]->Position.z));
     }
     else if (Input::IsKeyDown(Key::DownArrow) || Input::IsKeyDown(Key::S))
     {
@@ -135,8 +154,6 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
         {
             m_Players[m_Player]->Position.z = oldZ;
         }
-
-        m_Socket->SendData("Z-" + std::to_string(m_Players[m_Player]->Position.z));
     }
 
     UpdateBall(deltaTimeSeconds);

@@ -18,11 +18,10 @@ public:
     void OnResize() override;
 
     bool IsBallOutOfBounds() const;
-
 private:
-    void SocketCommunication();
+    void SocketReader();
+    void SocketSender();
     void UpdateBall(f64 deltaTimeSeconds);
-
 private:
     std::vector<std::unique_ptr<Cube>> m_Map;
     std::unique_ptr<Cube> m_Players[2];
@@ -33,4 +32,5 @@ private:
     std::unique_ptr<Camera> m_Camera;
     std::unique_ptr<UDPSocket> m_Socket;
     std::thread m_ReadThread;
+    std::thread m_SendThread;
 };
