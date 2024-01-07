@@ -63,17 +63,19 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_Ball->SetPosition({0.0f, 3.0f, 0.0f});
 
     //Player 1
-    m_Player = std::make_unique<Cube>(true);
-    m_Player->SetScale({3, 10, 30});
-    m_Player->SetPosition({-125, 0, 0});
+    m_Players[0] = std::make_unique<Cube>(true);
+    m_Players[0]->SetScale({3, 10, 30});
+    m_Players[0]->SetPosition({-125, 0, 0});
 
     //Player 2
-    m_Opponent = std::make_unique<Cube>(true);
-    m_Opponent->SetScale({3, 10, 30});
-    m_Opponent->SetPosition({125, 0, 0});
+    m_Players[1] = std::make_unique<Cube>(true);
+    m_Players[1]->SetScale({3, 10, 30});
+    m_Players[1]->SetPosition({125, 0, 0});
 
     // Socket
     m_Socket = Socket::CreateConnection("frios2.fri.uniza.sk", 12694);
+
+    m_Player = 1; // Player selection | 0 - Left (Player 1), 1 - Right - (Player 2)
 }
 
 Pong::~Pong()
@@ -86,22 +88,22 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
 
     if (Input::IsKeyDown(Key::UpArrow) || Input::IsKeyDown(Key::W))
     {
-        f32 oldZ = m_Player->Position.z;
-        m_Player->Position.z -= playerSpeed * (f32)deltaTimeSeconds;
+        f32 oldZ = m_Players[m_Player]->Position.z;
+        m_Players[m_Player]->Position.z -= playerSpeed * (f32)deltaTimeSeconds;
 
-        if (Cube::CheckCollision(*m_Player, *m_Map[m_TopIndex]))
+        if (Cube::CheckCollision(*m_Players[m_Player], *m_Map[m_TopIndex]))
         {
-            m_Player->Position.z = oldZ;
+            m_Players[m_Player]->Position.z = oldZ;
         }
     }
     else if (Input::IsKeyDown(Key::DownArrow) || Input::IsKeyDown(Key::S))
     {
-        f32 oldZ = m_Player->Position.z;
-        m_Player->Position.z += playerSpeed * (f32)deltaTimeSeconds;
+        f32 oldZ = m_Players[m_Player]->Position.z;
+        m_Players[m_Player]->Position.z += playerSpeed * (f32)deltaTimeSeconds;
 
-        if (Cube::CheckCollision(*m_Player, *m_Map[m_BottomIndex]))
+        if (Cube::CheckCollision(*m_Players[m_Player], *m_Map[m_BottomIndex]))
         {
-            m_Player->Position.z = oldZ;
+            m_Players[m_Player]->Position.z = oldZ;
         }
     }
 
@@ -152,7 +154,7 @@ void Pong::UpdateBall(f64 deltaTimeSeconds) {
         return;
     }
 
-    if (Cube::CheckCollision(*m_Ball, *m_Player))
+    if (Cube::CheckCollision(*m_Ball, *m_Players[0]))
     {
         if (direction.x < 0.0f)
         {
@@ -163,7 +165,7 @@ void Pong::UpdateBall(f64 deltaTimeSeconds) {
         }
     }
 
-    if (Cube::CheckCollision(*m_Ball, *m_Opponent))
+    if (Cube::CheckCollision(*m_Ball, *m_Players[1]))
     {
         if (direction.x > 0.0f)
         {
@@ -182,8 +184,8 @@ void Pong::OnRender()
     Renderer::ClearBuffer();
 
     m_Ball->Draw(*m_Camera);
-    m_Player->DrawLit(*m_Camera, m_Ball);
-    m_Opponent->DrawLit(*m_Camera, m_Ball);
+    m_Players[0]->DrawLit(*m_Camera, m_Ball);
+    m_Players[1]->DrawLit(*m_Camera, m_Ball);
     for (const auto &item: m_Map)
     {
         item->DrawLit(*m_Camera, m_Ball);

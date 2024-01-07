@@ -19,10 +19,10 @@ public:
 private:
     void UpdateBall(f64 deltaTimeSeconds);
     std::vector<std::unique_ptr<Cube>> m_Map;
+    std::unique_ptr<Cube> m_Players[2];
 
-    u8 m_TopIndex, m_BottomIndex, m_RightIndex, m_LeftIndex, m_FloorIndex;
+    u8 m_Player, m_TopIndex, m_BottomIndex, m_RightIndex, m_LeftIndex, m_FloorIndex;
     std::unique_ptr<Cube> m_Ball;
-    std::unique_ptr<Cube> m_Player;
     std::unique_ptr<Cube> m_Opponent;
     std::unique_ptr<Camera> m_Camera;
 
