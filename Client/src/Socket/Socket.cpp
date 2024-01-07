@@ -15,7 +15,7 @@ Socket::Socket(const char* address, int port)
 {
     if (WSAStartup(MAKEWORD(2, 2), &g_WSAData) != 0)
     {
-        throw std::runtime_error("Failed to startup WSA");
+        throw std::runtime_error("WSAStartup failed with error code: " + std::to_string(WSAGetLastError()));
     }
 
     addrinfo addressInfoHints = {};
@@ -53,12 +53,26 @@ Socket::~Socket()
     WSACleanup();
 }
 
-void Socket::SendData(const std::string& data) const
+bool Socket::TrySendData(const std::string& data) const
 {
     if (send(g_SocketHandle, data.c_str(), static_cast<int>(data.length()), 0) == SOCKET_ERROR)
     {
-        throw std::runtime_error("send() failed with error code: " + std::to_string(WSAGetLastError()));
+        return false;
     }
+    return true;
+}
+
+bool Socket::TryReadData(std::string& output, char delimiter) const
+{
+    char buffer[256];
+    if (recv(g_SocketHandle, buffer, sizeof(buffer), 0) == SOCKET_ERROR)
+    {
+        return false;
+    }
+
+    std::string bufferString = buffer;
+    output = bufferString.substr(0, bufferString.find(delimiter));
+    return true;
 }
 
 std::unique_ptr<Socket> Socket::CreateConnection(const char* address, int port)

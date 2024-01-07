@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Blaze.hpp>
+#include <thread>
 #include "Cube.hpp"
 #include "Socket/Socket.hpp"
 
@@ -16,6 +17,8 @@ public:
     void OnResize() override;
 
     bool IsBallOutOfBounds() const;
+
+    void SocketCommunication() const;
 private:
     void UpdateBall(f64 deltaTimeSeconds);
     std::vector<std::unique_ptr<Cube>> m_Map;
@@ -25,6 +28,7 @@ private:
     std::unique_ptr<Cube> m_Player;
     std::unique_ptr<Cube> m_Opponent;
     std::unique_ptr<Camera> m_Camera;
-
     std::unique_ptr<Socket> m_Socket;
+
+    std::thread m_CommunicationThread;
 };

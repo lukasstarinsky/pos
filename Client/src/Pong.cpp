@@ -74,10 +74,22 @@ Pong::Pong(const ApplicationProperties& appProperties)
 
     // Socket
     m_Socket = Socket::CreateConnection("frios2.fri.uniza.sk", 12694);
+    m_CommunicationThread = std::thread(&Pong::SocketCommunication, this);
 }
 
 Pong::~Pong()
 {
+    m_CommunicationThread.join();
+}
+
+void Pong::SocketCommunication() const
+{
+    while (true)
+    {
+        m_Socket->TrySendData("TESTING;asd");
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 }
 
 void Pong::OnUpdate(f64 deltaTimeSeconds)
@@ -174,7 +186,6 @@ void Pong::UpdateBall(f64 deltaTimeSeconds) {
         }
     }
 }
-
 
 void Pong::OnRender()
 {

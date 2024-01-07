@@ -1,7 +1,7 @@
+#include <cstring>
 #include "Socket.hpp"
 
 #pragma region "Linux implementation"
-#if defined(__linux__)
 namespace
 {
     socklen_t g_AddrLength;
@@ -25,7 +25,7 @@ SocketServer::SocketServer(int port)
         throw std::runtime_error("bind() failed.");
     }
 
-    if (listen(m_Socket, 2) < 0)
+    if (listen(m_Socket, SOMAXCONN) < 0)
     {
         throw std::runtime_error("listen() failed.");
     }
@@ -70,24 +70,34 @@ SocketConnection::~SocketConnection()
     close(m_Connection);
 }
 
-bool SocketConnection::ReadData(std::string* outData) const
+int SocketConnection::operator()() const
+{
+    return m_Connection;
+}
+
+bool SocketConnection::TryReadData(std::string& output, char delimiter) const
 {
     char buffer[256];
-    if (read(m_Connection, &buffer, sizeof(buffer)) <= 0)
+    memset(buffer, 0, sizeof(buffer));
+
+    int bytesReceived = recv(m_Connection, buffer, sizeof(buffer), 0);
+
+    if (bytesReceived <= 0)
     {
-        std::cout << "Failed: " << buffer << std::endl;
-        if (outData)
-        {
-            *outData = "";
-        }
         return false;
     }
 
-    if (outData)
+    std::string bufferString = buffer;
+    output = bufferString.substr(0, bufferString.find(delimiter));
+    return true;
+}
+
+bool SocketConnection::TrySendData(const std::string& data) const
+{
+    if (send(m_Connection, data.c_str(), sizeof(data), 0) < 0)
     {
-        *outData = std::string(buffer);
+        return false;
     }
     return true;
 }
-#endif
 #pragma endregion

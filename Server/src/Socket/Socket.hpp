@@ -12,7 +12,10 @@ public:
     SocketConnection(int connection);
     ~SocketConnection();
 
-    bool ReadData(std::string* outData) const;
+    int operator()() const;
+
+    bool TryReadData(std::string& output, char delimiter = ';') const;
+    bool TrySendData(const std::string& data) const;
 private:
     int m_Connection;
 };
