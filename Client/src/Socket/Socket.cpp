@@ -1,4 +1,4 @@
-#include <Blaze.hpp>
+#include <Ignis.hpp>
 #include "Socket.hpp"
 
 #ifdef _WIN64
@@ -40,14 +40,14 @@ Socket::Socket(const char* address, int port)
         throw std::runtime_error("connect() failed with error code: " + std::to_string(WSAGetLastError()));
     }
     freeaddrinfo(addressInfo);
-    LOG_INFO("Socket connected");
+    IGNIS_INFO("Socket connected");
 }
 
 Socket::~Socket()
 {
     if (g_SocketHandle != INVALID_SOCKET)
     {
-        LOG_INFO("Socket disconnected");
+        IGNIS_INFO("Socket disconnected");
         closesocket(g_SocketHandle);
     }
     WSACleanup();

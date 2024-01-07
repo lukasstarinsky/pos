@@ -73,13 +73,23 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_Opponent->SetPosition({125, 0, 0});
 
     // Socket
-    m_Socket = Socket::CreateConnection("frios2.fri.uniza.sk", 12694);
-    m_CommunicationThread = std::thread(&Pong::SocketCommunication, this);
+    try
+    {
+        m_Socket = Socket::CreateConnection("frios2.fri.uniza.sk", 12694);
+        m_CommunicationThread = std::thread(&Pong::SocketCommunication, this);
+    }
+    catch (const std::runtime_error& e)
+    {
+        IGNIS_ERROR("Failed to initialize socket connection: {}", e.what());
+    }
 }
 
 Pong::~Pong()
 {
-    m_CommunicationThread.join();
+    if (m_Socket)
+    {
+        m_CommunicationThread.join();
+    }
 }
 
 void Pong::SocketCommunication() const
