@@ -5,7 +5,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 project(Client LANGUAGES CXX)
 
-add_subdirectory(ThirdParty/Blaze)
+add_subdirectory(ThirdParty/Ignis)
 
 add_executable(${PROJECT_NAME}
     src/Main.cpp
@@ -17,7 +17,7 @@ add_executable(${PROJECT_NAME}
     src/Socket/Socket.hpp
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Engine)
+target_link_libraries(${PROJECT_NAME} PRIVATE IgnisEngine)
 
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)

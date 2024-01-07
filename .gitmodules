@@ -1,3 +1,3 @@
-[submodule "Client/ThirdParty/Blaze"]
-	path = Client/ThirdParty/Blaze
-	url = https://github.com/lukasstarinsky/Blaze
+[submodule "Client/ThirdParty/Ignis"]
+	path = Client/ThirdParty/Ignis
+	url = https://github.com/lukasstarinsky/Ignis

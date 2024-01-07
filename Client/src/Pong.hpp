@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Blaze.hpp>
+#include <Ignis.hpp>
 #include <thread>
 #include "Cube.hpp"
 #include "Socket/Socket.hpp"
