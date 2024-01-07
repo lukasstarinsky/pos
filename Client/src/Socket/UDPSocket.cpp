@@ -36,3 +36,18 @@ void UDPSocket::SendData(const std::string& data)
         IGNIS_ERROR("sendto() failed with error code: {}", WSAGetLastError());
     }
 }
+
+std::string UDPSocket::ReadData()
+{
+    char buffer[1024];
+    memset(buffer, 0, sizeof(buffer));
+
+    if (recvfrom(m_Socket, buffer, sizeof(buffer), 0, (sockaddr*)&m_ServerAddr, &m_ServerAddrLen) == SOCKET_ERROR)
+    {
+        IGNIS_ERROR("recvfrom() failed with error code: {}", WSAGetLastError());
+    }
+
+    std::string output = buffer;
+    std::erase(output, '\n');
+    return output;
+}
