@@ -26,7 +26,7 @@ public:
     SocketServer(int port);
     ~SocketServer();
 
-    SocketConnection AcceptConnection();
+    SocketConnection* AcceptConnection();
 
     static std::unique_ptr<SocketServer> Create(int port);
 private:

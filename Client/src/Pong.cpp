@@ -96,7 +96,13 @@ void Pong::SocketCommunication() const
 {
     while (true)
     {
-        m_Socket->TrySendData("TESTING;asd");
+        m_Socket->TrySendData(std::format("{};", m_Player->Position.z));
+
+        std::string player2Data;
+        if (m_Socket->TryReadData(player2Data))
+        {
+            m_Opponent->Position.z = std::stof(player2Data);
+        }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }

@@ -49,14 +49,14 @@ std::unique_ptr<SocketServer> SocketServer::Create(int port)
     return std::make_unique<SocketServer>(port);
 }
 
-SocketConnection SocketServer::AcceptConnection()
+SocketConnection* SocketServer::AcceptConnection()
 {
     int connection = accept(m_Socket, (sockaddr*)&g_Addr, &g_AddrLength);
     if (connection < 0)
     {
         throw std::runtime_error("accept() failed.");
     }
-    return connection;
+    return new SocketConnection(connection);
 }
 
 SocketConnection::SocketConnection(int connection)
@@ -94,7 +94,7 @@ bool SocketConnection::TryReadData(std::string& output, char delimiter) const
 
 bool SocketConnection::TrySendData(const std::string& data) const
 {
-    if (send(m_Connection, data.c_str(), sizeof(data), 0) < 0)
+    if (send(m_Connection, data.c_str(), data.size(), 0) < 0)
     {
         return false;
     }
