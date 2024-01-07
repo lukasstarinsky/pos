@@ -1,60 +1,35 @@
 #include <iostream>
 #include <vector>
 #include <thread>
-#include "Socket/Socket.hpp"
+#include "Socket/UDPSocket.hpp"
 
 #define PORT 12694
 
 int main()
 {
-    auto server = SocketServer::Create(/*port*/PORT);
-    std::cout << "Server running on port: " << PORT << std::endl;
+    UDPSocketServer server(PORT);
 
-
-    SocketConnection* player1 = nullptr;
-    SocketConnection* player2 = nullptr;
+    std::vector<UDPSocketClient> players;
     while (true)
     {
-        if (!player1)
+        if (players.size() < 1)
         {
-            std::cout << "Waiting for players to connect...\n";
-            player1 = server->AcceptConnection();
-            std::cout << "Player connected.\n";
-        }
-        if (!player2)
-        {
-            std::cout << "Waiting for players to connect...\n";
-            player2 = server->AcceptConnection();
-            std::cout << "Player connected.\n";
+            // Todo: thread for each player?
+            std::cout << "Waiting for players to join(" << players.size() << "/2)...\n";
+
+            UDPSocketClient player;
+            std::string data = player.WaitForData(server());
+
+            if (data != "join")
+            {
+                continue;
+            }
+
+            player.SendData(server(), "TESTING");
+            // Todo: Join user
         }
 
-        std::string dataPlayer1;
-        if (!player1->TryReadData(dataPlayer1, ';'))
-        {
-            std::cerr << "Player1 disconnected\n";
-            delete player1;
-            player1 = nullptr;
-            continue;
-        }
-        else
-        {
-            player2->TrySendData(dataPlayer1);
-        }
-
-        std::string dataPlayer2;
-        if (!player2->TryReadData(dataPlayer2, ';'))
-        {
-            std::cerr << "Player2 disconnected\n";
-            delete player2;
-            player2 = nullptr;
-            continue;
-        }
-        else
-        {
-            player1->TrySendData(dataPlayer2);
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::microseconds((1000 / 64) * 1000)); // 64 - tick ? :)
     }
 
     return 0;

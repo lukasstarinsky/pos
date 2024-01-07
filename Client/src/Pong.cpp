@@ -75,8 +75,8 @@ Pong::Pong(const ApplicationProperties& appProperties)
     // Socket
     try
     {
-        m_Socket = Socket::CreateConnection("frios2.fri.uniza.sk", 12694);
-        m_CommunicationThread = std::thread(&Pong::SocketCommunication, this);
+        m_Socket = std::make_unique<UDPSocket>("158.193.128.160", 12694);
+        m_Socket->SendData("join");
     }
     catch (const std::runtime_error& e)
     {
@@ -86,24 +86,12 @@ Pong::Pong(const ApplicationProperties& appProperties)
 
 Pong::~Pong()
 {
-    if (m_Socket)
-    {
-        m_CommunicationThread.join();
-    }
 }
 
 void Pong::SocketCommunication() const
 {
     while (true)
     {
-        m_Socket->TrySendData(std::format("{};", m_Player->Position.z));
-
-        std::string player2Data;
-        if (m_Socket->TryReadData(player2Data))
-        {
-            m_Opponent->Position.z = std::stof(player2Data);
-        }
-
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }

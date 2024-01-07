@@ -4,7 +4,7 @@
 #include <thread>
 #include <condition_variable>
 #include "Cube.hpp"
-#include "Socket/Socket.hpp"
+#include "Socket/UDPSocket.hpp"
 
 class Pong : public Application
 {
@@ -27,13 +27,9 @@ private:
     u8 m_TopIndex, m_BottomIndex, m_RightIndex, m_LeftIndex, m_FloorIndex;
     std::unique_ptr<Cube> m_Ball;
 
-    std::condition_variable m_CanUpdate;
-    std::mutex m_Mutex;
     std::unique_ptr<Cube> m_Player;
     std::unique_ptr<Cube> m_Opponent;
 
     std::unique_ptr<Camera> m_Camera;
-    std::unique_ptr<Socket> m_Socket;
-
-    std::thread m_CommunicationThread;
+    std::unique_ptr<UDPSocket> m_Socket;
 };
