@@ -9,6 +9,8 @@ file(GLOB_RECURSE src
     src/Main.cpp
     src/Socket/UDPSocket.cpp
     src/Socket/UDPSocket.hpp
+    src/Game.cpp
+    src/Game.hpp
 )
 
 add_executable(${PROJECT_NAME} ${src})

@@ -9,7 +9,7 @@ class UDPSocketServer
 public:
     explicit UDPSocketServer(int port);
     ~UDPSocketServer();
-    int operator()() const;
+    int GetSocket() const;
 private:
     int m_Socket;
 };
@@ -20,8 +20,9 @@ public:
     UDPSocketClient() = default;
 
     [[ nodiscard ]] bool TryReadData(int server, std::string& data);
-    void SendData(int server, const std::string& data, sockaddr_in& sockAddr);
-public:
+    void SendData(int server, const std::string& data, const sockaddr_in& sockAddr) const;
+    sockaddr_in GetSockAddr() const;
+private:
     sockaddr_in m_SockAddr = {};
     socklen_t m_SockAddrLen = sizeof(m_SockAddr);
 };

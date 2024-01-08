@@ -1,77 +1,39 @@
 #include <iostream>
-#include <vector>
 #include <thread>
-#include <queue>
+#include "Game.hpp"
 #include "Socket/UDPSocket.hpp"
 
 #define PORT 12694
-
-struct ThreadData
-{
-    UDPSocketClient& Player;
-    std::queue<std::string> MessageQueue;
-    bool Stop = false;
-};
-
-struct Player
-{
-    sockaddr_in SockAddr;
-};
+#define PLAYER_TIMEOUT_SECONDS 10
 
 int main()
 {
-    UDPSocketServer server(PORT);
-    UDPSocketClient client;
-
-    std::vector<Player> players;
-    bool gameStarted = false;
+    auto server = std::make_unique<UDPSocketServer>(PORT);
+    auto client = std::make_unique<UDPSocketClient>();
+    auto game = std::make_unique<Game>(server.get(), client.get());
 
     while (true)
     {
-        if (players.size() < 2)
+        // Connect players
+        if (game->GetGameState() == GameState::Connecting && game->GetPlayerCount() != 2)
         {
-            std::cout << "Waiting for players to join (" << players.size() << "/2)...\n";
-
-            while (players.size() < 2)
+            std::cout << "Waiting for players to connect (" << game->GetPlayerCount() << "/2)...\n";
+            while (game->GetPlayerCount() != 2)
             {
-                std::string data;
-                if (client.TryReadData(server(), data))
-                {
-                    if (data == "join")
-                    {
-                        players.emplace_back(client.m_SockAddr);
-                        client.SendData(server(), "ID-" + std::to_string(players.size() - 1), players[players.size() - 1].SockAddr);
-                        std::cout << "Player connected (" << players.size() << "/2).\n";
-                    }
-                }
+                game->ConnectPlayer();
             }
-            std::cout << "All players connected. Game starting...\n";
+
+            std::cout << "All players connected, starting the game...\n";
+            game->StartGame();
         }
-
-        if (!gameStarted)
+        // Update the game state
+        else if (game->GetGameState() == GameState::Started)
         {
-            for (auto& player: players)
+            if (game->CheckForDisconnect(PLAYER_TIMEOUT_SECONDS))
             {
-                client.SendData(server(), "START", player.SockAddr);
+                continue;
             }
-
-            gameStarted = true;
-        }
-
-        if (gameStarted)
-        {
-            std::string data;
-            if (client.TryReadData(server(), data))
-            {
-                if (data.starts_with("0Z-"))
-                {
-                    client.SendData(server(), data, players[1].SockAddr);
-                }
-                else if (data.starts_with("1Z-"))
-                {
-                    client.SendData(server(), data, players[0].SockAddr);
-                }
-            }
+            game->UpdatePlayerPositions();
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));

@@ -43,14 +43,12 @@ UDPSocketServer::~UDPSocketServer()
     close(m_Socket);
 }
 
-int UDPSocketServer::operator()() const
+int UDPSocketServer::GetSocket() const
 {
     return m_Socket;
 }
 
 // Client
-
-// 1 sec timeout
 bool UDPSocketClient::TryReadData(int server, std::string& data)
 {
     char buffer[1024];
@@ -66,10 +64,15 @@ bool UDPSocketClient::TryReadData(int server, std::string& data)
     return true;
 }
 
-void UDPSocketClient::SendData(int server, const std::string& data, sockaddr_in& sockAddr)
+void UDPSocketClient::SendData(int server, const std::string& data, const sockaddr_in& sockAddr) const
 {
     if (sendto(server, data.c_str(), data.size(), 0, (sockaddr*)&sockAddr, m_SockAddrLen) <= 0)
     {
-        std::cerr << "sendto() failed with error code: " << errno << std::endl;
+//        std::cerr << "sendto() failed with error code: " << errno << std::endl;
     }
+}
+
+sockaddr_in UDPSocketClient::GetSockAddr() const
+{
+    return m_SockAddr;
 }

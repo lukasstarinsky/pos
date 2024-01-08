@@ -134,6 +134,11 @@ void Pong::SocketReader()
         {
             m_IsGameRunning = true;
         }
+        else if (data == "QUIT")
+        {
+//            IGNIS_INFO("Quit message received...");
+            m_AppState.IsRunning = false;
+        }
         else if (data.starts_with("ID-"))
         {
             m_Player = data[3] - '0';
@@ -264,6 +269,8 @@ void Pong::OnRender()
     Renderer::SetClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     Renderer::ClearBuffer();
 
+    // Todo: better mutex locking?
+    m_Mutex.lock();
     m_Ball->Draw(*m_Camera);
     m_Players[0]->DrawLit(*m_Camera, m_Ball);
     m_Players[1]->DrawLit(*m_Camera, m_Ball);
@@ -271,6 +278,7 @@ void Pong::OnRender()
     {
         item->DrawLit(*m_Camera, m_Ball);
     }
+    m_Mutex.unlock();
 }
 
 bool Pong::IsBallOutOfBounds() const
