@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <mutex>
-#include "Socket/UDPSocket.hpp"
+#include "UDPSocket.hpp"
 
 enum class GameState
 {

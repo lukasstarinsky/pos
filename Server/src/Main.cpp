@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 #include "Game.hpp"
-#include "Socket/UDPSocket.hpp"
+#include "UDPSocket.hpp"
 
 #define PORT 12694
 #define PLAYER_TIMEOUT_SECONDS 10

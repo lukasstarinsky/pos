@@ -5,7 +5,7 @@
 #include <condition_variable>
 #include "MessageQueue.hpp"
 #include "Cube.hpp"
-#include "Socket/UDPSocket.hpp"
+#include "UDPSocket.hpp"
 
 class Pong : public Application
 {

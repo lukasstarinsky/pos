@@ -7,8 +7,8 @@ project(Server LANGUAGES CXX)
 
 file(GLOB_RECURSE src
     src/Main.cpp
-    src/Socket/UDPSocket.cpp
-    src/Socket/UDPSocket.hpp
+    src/UDPSocket.cpp
+    src/UDPSocket.hpp
     src/Game.cpp
     src/Game.hpp
 )

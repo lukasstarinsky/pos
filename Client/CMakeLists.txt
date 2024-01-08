@@ -15,8 +15,8 @@ add_executable(${PROJECT_NAME}
     src/Cube.hpp
     src/MessageQueue.cpp
     src/MessageQueue.hpp
-    src/Socket/UDPSocket.cpp
-    src/Socket/UDPSocket.hpp
+    src/UDPSocket.cpp
+    src/UDPSocket.hpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE IgnisEngine)
