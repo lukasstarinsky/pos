@@ -75,7 +75,7 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_Player = 0;
 
     // Socket
-    m_Socket = std::make_unique<UDPSocket>("158.193.128.160", 12694);
+    m_Socket = std::make_unique<UDPSocket>("158.193.128.160", 12694, UDPSocketType::NON_BLOCKING);
     m_Socket->SendData("join");
     m_ReadThread = std::thread(&Pong::SocketReader, this);
     m_SendThread = std::thread(&Pong::SocketSender, this);
@@ -94,9 +94,10 @@ void Pong::SocketSender()
 {
     while (true)
     {
-        std::unique_lock<std::mutex> lock;
+        std::unique_lock<std::mutex> lock(m_Mutex);
         if (m_ShouldStop)
         {
+            IGNIS_INFO("Shutting down SocketSender thread...");
             break;
         }
         lock.unlock();
@@ -119,14 +120,16 @@ void Pong::SocketReader()
 {
     while (true)
     {
-        std::string data = m_Socket->ReadData();
-
         std::unique_lock<std::mutex> lock(m_Mutex);
         if (m_ShouldStop)
         {
+            IGNIS_INFO("Shutting down SocketReader thread...");
             break;
         }
+        lock.unlock();
 
+        std::string data = m_Socket->ReadData();
+        lock.lock();
         if (data == "START")
         {
             m_IsGameRunning = true;

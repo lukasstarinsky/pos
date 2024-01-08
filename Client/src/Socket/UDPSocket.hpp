@@ -1,9 +1,15 @@
 #pragma once
 
+enum class UDPSocketType : u32
+{
+    BLOCKING = 0,
+    NON_BLOCKING
+};
+
 class UDPSocket
 {
 public:
-    UDPSocket(const char* address, int port);
+    UDPSocket(const char* address, int port, UDPSocketType type);
     ~UDPSocket();
 
     std::string ReadData();
