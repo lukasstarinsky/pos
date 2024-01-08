@@ -72,7 +72,7 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_Players[1]->SetPosition({125, 0, 0});
 
     // Socket
-    m_Socket = std::make_unique<UDPSocket>("94.16.105.26", 12694, UDPSocketType::NON_BLOCKING);
+    m_Socket = std::make_unique<UDPSocket>("158.193.128.160", 12694, UDPSocketType::NON_BLOCKING);
     m_Socket->SendData("JOIN");
     m_ReadThread = std::thread(&Pong::SocketReader, this);
     m_SendThread = std::thread(&Pong::SocketSender, this);
