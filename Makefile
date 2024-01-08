@@ -32,6 +32,7 @@ endif
 SERVER_SRC=Server/src/Main.cpp \
 		   Server/src/Game.cpp \
 		   Server/src/UDPSocket.cpp
+SERVER_LIBS=-lstdc++
 SERVER_OBJS=$(patsubst Server/src/%.cpp,Build/Server/%.o,$(SERVER_SRC))
 
 Build/Server/%.o: Server/src/%.cpp
@@ -40,7 +41,7 @@ ifeq ($(OS), Windows_NT)
 else
 	-@mkdir -p ./Build/Server
 endif
-	gcc -std=c++23 -c $< -o $@
+	gcc -std=c++23 -c $< -o $@ $(SERVER_LIBS)
 
 Server: $(SERVER_OBJS)
 ifeq ($(OS), Windows_NT)
@@ -48,7 +49,7 @@ ifeq ($(OS), Windows_NT)
 else
 	-@mkdir -p ./Build/Server
 endif
-	gcc -std=c++23 $^ -o ./Build/$@
+	gcc -std=c++23 $^ -o ./Build/Server/$@ $(SERVER_LIBS)
 
 Clean:
 ifeq ($(OS), Windows_NT)
