@@ -177,11 +177,6 @@ void Game::UpdateState()
             m_SocketClient->SendData(m_SocketServer->GetSocket(), data, m_Players[1]->SockAddr);
         }
     }
-
-    // Todo update ball
-    auto time = std::chrono::steady_clock::now();
-    float deltaTime = (time - m_LastUpdate).count(); // Elapsed time since last this code was run
-    m_LastUpdate = time;
 }
 
 int Game::GetPlayerCount()

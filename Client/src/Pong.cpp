@@ -166,17 +166,21 @@ void Pong::SocketReader()
         {
             m_Players[1]->Position.z = std::stof(data.substr(3));
         }
+        else if (m_Player == 1 && data == "RANDOM")
+        {
+            m_Ball->SetRandomColor();
+        }
         else if (m_Player == 1 && data.starts_with("BALL-"))
         {
             std::string coords = data.substr(5);
-            u64 separator = coords.find('-');
+            u64 separator = coords.find(';');
 
             float x = std::stof(coords.substr(0, separator));
-            float z = std::stof(coords.substr(separator));
+            float z = std::stof(coords.substr(separator + 1));
 
             m_Ball->Position.x = x;
             m_Ball->Position.z = z;
-        s
+        }
         lock.unlock();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -190,6 +194,7 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
     bool leftInput = Input::IsKeyDown(Key::LeftArrow) || Input::IsKeyDown(Key::A);
     bool rightInput = Input::IsKeyDown(Key::RightArrow) || Input::IsKeyDown(Key::D);
 
+    m_Mutex.lock();
     if (m_Player == 0 && leftInput || m_Player == 1 && rightInput)
     {
         f32 oldZ = m_Players[m_Player]->Position.z;
@@ -211,21 +216,22 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
         }
     }
 
-    m_Mutex.lock();
-    bool updateBall = m_IsGameStarted;
-    m_Mutex.unlock();
-
-    if (updateBall && m_Player == 0)
+    if (m_Player == 0 && m_IsGameStarted)
     {
         UpdateBall(deltaTimeSeconds);
     }
 
-    if (GetElapsedSinceLastUpdate() >= 16)
+    if (GetElapsedSinceLastUpdate() >= 33)
     {
+        if (m_Player == 0 && m_IsGameStarted)
+        {
+            m_SendQueue.Push(std::format("BALL-{};{}", m_Ball->Position.x, m_Ball->Position.z));
+        }
+
         m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
-        if (m_Player == 0) m_SendQueue.Push(std::format("BALL-{}-{}", m_Player, m_Ball->Position.x, m_Ball->Position.z));
         m_LastDataSent = Platform::GetTimeMillis();
     }
+    m_Mutex.unlock();
 }
 
 glm::vec3 GetRandomDirection()
@@ -268,7 +274,7 @@ void Pong::UpdateBall(f64 deltaTimeSeconds) {
         m_Ball->Position.x = 0.0f;
         m_Ball->Position.z = 0.0f;
         m_Ball->SetRandomColor();
-        // Add score
+        m_SendQueue.Push("RANDOM");
         return;
     }
 
@@ -279,6 +285,7 @@ void Pong::UpdateBall(f64 deltaTimeSeconds) {
             direction.x = -direction.x;
             m_Ball->Position = originalPosition;
             m_Ball->SetRandomColor();
+            m_SendQueue.Push("RANDOM");
             return;
         }
     }
@@ -290,6 +297,7 @@ void Pong::UpdateBall(f64 deltaTimeSeconds) {
             direction.x = -direction.x;
             m_Ball->Position = originalPosition;
             m_Ball->SetRandomColor();
+            m_SendQueue.Push("RANDOM");
             return;
         }
     }
@@ -300,7 +308,6 @@ void Pong::OnRender()
     Renderer::SetClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     Renderer::ClearBuffer();
 
-    // Todo: better mutex locking?
     m_Mutex.lock();
     m_Ball->Draw(*m_Camera);
     m_Players[0]->DrawLit(*m_Camera, m_Ball);

@@ -1,3 +1,6 @@
 [submodule "Client/ThirdParty/Ignis"]
 	path = Client/ThirdParty/Ignis
 	url = https://github.com/lukasstarinsky/Ignis
+[submodule "Server/ThirdParty/glm"]
+	path = Server/ThirdParty/glm
+	url = https://github.com/g-truc/glm
