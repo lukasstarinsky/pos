@@ -21,6 +21,7 @@ int main()
             while (game->GetPlayerCount() != 2)
             {
                 game->ConnectPlayer();
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
 
             std::cout << "All players connected, starting the game...\n";
@@ -33,7 +34,7 @@ int main()
             {
                 continue;
             }
-            game->UpdatePlayerPositions();
+            game->UpdateState();
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));

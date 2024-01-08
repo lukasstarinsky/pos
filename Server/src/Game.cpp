@@ -36,6 +36,7 @@ void Game::StartGame()
         player.LastUpdate = std::chrono::steady_clock::now();
         m_SocketClient->SendData(m_SocketServer->GetSocket(), "START", player.SockAddr);
     }
+    m_LastUpdate = std::chrono::steady_clock::now();
 }
 
 bool Game::CheckForDisconnect(int timeoutSeconds)
@@ -55,13 +56,13 @@ bool Game::CheckForDisconnect(int timeoutSeconds)
     if (erased > 0)
     {
         m_GameState = GameState::Connecting;
-        std::cout << erased << " player(s) disconnected...\n";
+        std::cout << erased << " player(s) disconnected (" << m_Players.size() << "/2)...\n";
     }
 
     return erased > 0;
 }
 
-void Game::UpdatePlayerPositions()
+void Game::UpdateState()
 {
     std::string data;
 
@@ -78,6 +79,10 @@ void Game::UpdatePlayerPositions()
             m_SocketClient->SendData(m_SocketServer->GetSocket(), data, m_Players[0].SockAddr);
         }
     }
+
+    auto time = std::chrono::steady_clock::now();
+    float deltaTime = (time - m_LastUpdate).count(); // Elapsed time since last this code was run
+    m_LastUpdate = time;
 }
 
 int Game::GetPlayerCount() const

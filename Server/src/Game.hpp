@@ -26,10 +26,11 @@ public:
     void ConnectPlayer();
     void StartGame();
     bool CheckForDisconnect(int timeoutSeconds);
-    void UpdatePlayerPositions();
+    void UpdateState();
 private:
     std::vector<Player> m_Players;
     UDPSocketServer* m_SocketServer;
     UDPSocketClient* m_SocketClient;
     GameState m_GameState = GameState::Connecting;
+    std::chrono::time_point<std::chrono::steady_clock> m_LastUpdate;
 };

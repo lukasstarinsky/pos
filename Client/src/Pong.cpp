@@ -9,7 +9,7 @@ Pong::Pong(const ApplicationProperties& appProperties)
     // Floor
     m_Map.emplace_back(std::make_unique<Cube>());
     m_FloorIndex = m_Map.size() - 1;
-    m_Map[m_FloorIndex]->SetScale({500, 1, 500});
+    m_Map[m_FloorIndex]->SetScale({280, 1, 180});
     m_Map[m_FloorIndex]->SetPosition({0, 0, 0});
 
     // Top
@@ -54,8 +54,7 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_Map[m_Map.size() - 1]->SetPosition({0, 0, 63});
 
     // Camera, ball, players
-    m_Camera = std::make_unique<Camera>(CameraProjection::Perspective, glm::vec3(0.0f, 275.0f, 0.0f), appProperties.WindowWidth, appProperties.WindowHeight, 45.0f, 0.1f, 100.0f);
-    m_Camera->Rotate(0.0f, -89.9f);
+    m_Camera = std::make_unique<Camera>(CameraProjection::Perspective, glm::vec3(0.0f, 0.0f, 0.0f), appProperties.WindowWidth, appProperties.WindowHeight, 45.0f, 0.1f, 100.0f);
 
     m_Ball = std::make_unique<Cube>(true);
     m_Ball->SetScale({3.0f, 3.0f, 3.0f});
@@ -64,15 +63,13 @@ Pong::Pong(const ApplicationProperties& appProperties)
 
     //Player 1
     m_Players[0] = std::make_unique<Cube>(true);
-    m_Players[0]->SetScale({3, 10, 30});
+    m_Players[0]->SetScale({5, 10, 30});
     m_Players[0]->SetPosition({-125, 0, 0});
 
     //Player 2
     m_Players[1] = std::make_unique<Cube>(true);
-    m_Players[1]->SetScale({3, 10, 30});
+    m_Players[1]->SetScale({5, 10, 30});
     m_Players[1]->SetPosition({125, 0, 0});
-
-    m_Player = 0;
 
     // Socket
     m_Socket = std::make_unique<UDPSocket>("158.193.128.160", 12694, UDPSocketType::NON_BLOCKING);
@@ -136,12 +133,22 @@ void Pong::SocketReader()
         }
         else if (data == "QUIT")
         {
-//            IGNIS_INFO("Quit message received...");
-            m_AppState.IsRunning = false;
+            Shutdown();
         }
         else if (data.starts_with("ID-"))
         {
             m_Player = data[3] - '0';
+
+            if (m_Player == 0)
+            {
+                m_Camera->SetPosition({-250.0f, 170.0f, 0.0f});
+                m_Camera->SetRotation(90.0f, -40.0f);
+            }
+            else
+            {
+                m_Camera->SetPosition({250.0f, 170.0f, 0.0f});
+                m_Camera->SetRotation(-90.0f, -40.0f);
+            }
         }
         else if (m_Player == 1 && data.starts_with("0Z-"))
         {
@@ -159,17 +166,22 @@ void Pong::SocketReader()
 
 void Pong::OnUpdate(f64 deltaTimeSeconds)
 {
+    u8 playerIndex;
     {
         std::unique_lock<std::mutex> lock(m_Mutex);
         if (!m_IsGameRunning)
         {
             return;
         }
+        playerIndex = m_Player;
     }
 
     static f32 playerSpeed = 120.0f;
 
-    if (Input::IsKeyDown(Key::UpArrow) || Input::IsKeyDown(Key::W))
+    bool leftInput = Input::IsKeyDown(Key::LeftArrow) || Input::IsKeyDown(Key::A);
+    bool rightInput = Input::IsKeyDown(Key::RightArrow) || Input::IsKeyDown(Key::D);
+
+    if (playerIndex == 0 && leftInput || playerIndex == 1 && rightInput)
     {
         f32 oldZ = m_Players[m_Player]->Position.z;
         m_Players[m_Player]->Position.z -= playerSpeed * (f32)deltaTimeSeconds;
@@ -181,7 +193,7 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
 
         m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
     }
-    else if (Input::IsKeyDown(Key::DownArrow) || Input::IsKeyDown(Key::S))
+    else if (playerIndex == 0 && rightInput || playerIndex == 1 && leftInput)
     {
         f32 oldZ = m_Players[m_Player]->Position.z;
         m_Players[m_Player]->Position.z += playerSpeed * (f32)deltaTimeSeconds;
