@@ -75,22 +75,18 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_Player = 0;
 
     // Socket
-    try
-    {
-        m_Socket = std::make_unique<UDPSocket>("158.193.128.160", 12694);
-        m_Socket->SendData("join");
-        m_ReadThread = std::thread(&Pong::SocketReader, this);
-        m_SendThread = std::thread(&Pong::SocketSender, this);
-    }
-    catch (const std::runtime_error& e)
-    {
-        IGNIS_ERROR("Failed to initialize socket connection: {}", e.what());
-    }
-
+    m_Socket = std::make_unique<UDPSocket>("158.193.128.160", 12694);
+    m_Socket->SendData("join");
+    m_ReadThread = std::thread(&Pong::SocketReader, this);
+    m_SendThread = std::thread(&Pong::SocketSender, this);
 }
 
 Pong::~Pong()
 {
+    m_Mutex.lock();
+    m_ShouldStop = true;
+    m_Mutex.unlock();
+    m_SendThread.join();
     m_ReadThread.join();
 }
 
@@ -98,9 +94,24 @@ void Pong::SocketSender()
 {
     while (true)
     {
-        m_Socket->SendData(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
+        std::unique_lock<std::mutex> lock;
+        if (m_ShouldStop)
+        {
+            break;
+        }
+        lock.unlock();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::queue<std::string> queue;
+        m_SendQueue.Swap(queue);
+
+        while (!queue.empty())
+        {
+            std::string data = queue.front();
+            queue.pop();
+            m_Socket->SendData(data);
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
@@ -110,9 +121,15 @@ void Pong::SocketReader()
     {
         std::string data = m_Socket->ReadData();
 
+        std::unique_lock<std::mutex> lock(m_Mutex);
+        if (m_ShouldStop)
+        {
+            break;
+        }
+
         if (data == "START")
         {
-            IGNIS_INFO("Game start");
+            m_IsGameRunning = true;
         }
         else if (data.starts_with("ID-"))
         {
@@ -126,6 +143,7 @@ void Pong::SocketReader()
         {
             m_Players[1]->Position.z = std::stof(data.substr(3));
         }
+        lock.unlock();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
@@ -133,6 +151,14 @@ void Pong::SocketReader()
 
 void Pong::OnUpdate(f64 deltaTimeSeconds)
 {
+    {
+        std::unique_lock<std::mutex> lock(m_Mutex);
+        if (!m_IsGameRunning)
+        {
+            return;
+        }
+    }
+
     static f32 playerSpeed = 120.0f;
 
     if (Input::IsKeyDown(Key::UpArrow) || Input::IsKeyDown(Key::W))
@@ -144,6 +170,8 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
         {
             m_Players[m_Player]->Position.z = oldZ;
         }
+
+        m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
     }
     else if (Input::IsKeyDown(Key::DownArrow) || Input::IsKeyDown(Key::S))
     {
@@ -154,6 +182,8 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
         {
             m_Players[m_Player]->Position.z = oldZ;
         }
+
+        m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
     }
 
     UpdateBall(deltaTimeSeconds);
@@ -255,14 +285,7 @@ void Pong::OnImGUIRender()
     ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
     ImGui::Begin("Debug");
     {
-        if (ImGui::TreeNode("Light"))
-        {
-            ImGui::CollapsingHeader("Light");
-            ImGui::DragFloat3("Position", (float*)&m_Ball->Position, 0.2f);
-            ImGui::ColorPicker3("Color", (f32*)&m_Ball->Color);
 
-            ImGui::TreePop();
-        }
     }
     ImGui::End();
 }

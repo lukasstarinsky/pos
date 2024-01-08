@@ -20,8 +20,8 @@ public:
     UDPSocketClient() = default;
 
     [[ nodiscard ]] bool TryReadData(int server, std::string& data);
-    void SendData(int server, const std::string& data);
-private:
+    void SendData(int server, const std::string& data, sockaddr_in& sockAddr);
+public:
     sockaddr_in m_SockAddr = {};
     socklen_t m_SockAddrLen = sizeof(m_SockAddr);
 };

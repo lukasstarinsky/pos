@@ -13,6 +13,8 @@ add_executable(${PROJECT_NAME}
     src/Pong.hpp
     src/Cube.cpp
     src/Cube.hpp
+    src/MessageQueue.cpp
+    src/MessageQueue.hpp
     src/Socket/UDPSocket.cpp
     src/Socket/UDPSocket.hpp
 )
