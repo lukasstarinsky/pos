@@ -331,13 +331,15 @@ void Pong::OnRender()
     Renderer::SetClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     Renderer::ClearBuffer();
 
-    m_Ball->Draw(*m_Camera, m_Mutex);
-    m_Players[0]->DrawLit(*m_Camera, m_Ball, m_Mutex);
-    m_Players[1]->DrawLit(*m_Camera, m_Ball, m_Mutex);
+    m_Mutex.lock();
+    m_Ball->Draw(*m_Camera);
+    m_Players[0]->DrawLit(*m_Camera, m_Ball);
+    m_Players[1]->DrawLit(*m_Camera, m_Ball);
     for (const auto &item: m_Map)
     {
-        item->DrawLit(*m_Camera, m_Ball, m_Mutex);
+        item->DrawLit(*m_Camera, m_Ball);
     }
+    m_Mutex.unlock();
 }
 
 bool Pong::IsBallOutOfBounds() const
