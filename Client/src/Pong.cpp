@@ -166,6 +166,17 @@ void Pong::SocketReader()
         {
             m_Players[1]->Position.z = std::stof(data.substr(3));
         }
+        else if (m_Player == 1 && data.starts_with("BALL-"))
+        {
+            std::string coords = data.substr(5);
+            u64 separator = coords.find('-');
+
+            float x = std::stof(coords.substr(0, separator));
+            float z = std::stof(coords.substr(separator));
+
+            m_Ball->Position.x = x;
+            m_Ball->Position.z = z;
+        s
         lock.unlock();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -200,19 +211,20 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
         }
     }
 
-    if (GetElapsedSinceLastUpdate() >= 16)
-    {
-        m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
-        m_LastDataSent = Platform::GetTimeMillis();
-    }
-
     m_Mutex.lock();
     bool updateBall = m_IsGameStarted;
     m_Mutex.unlock();
 
-    if (updateBall)
+    if (updateBall && m_Player == 0)
     {
         UpdateBall(deltaTimeSeconds);
+    }
+
+    if (GetElapsedSinceLastUpdate() >= 16)
+    {
+        m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
+        if (m_Player == 0) m_SendQueue.Push(std::format("BALL-{}-{}", m_Player, m_Ball->Position.x, m_Ball->Position.z));
+        m_LastDataSent = Platform::GetTimeMillis();
     }
 }
 
