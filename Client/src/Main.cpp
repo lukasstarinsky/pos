@@ -16,7 +16,7 @@ int main()
     }
     catch (const std::exception& e)
     {
-        LOG_INFO("{}", e.what());
+        IGNIS_ERROR("{}", e.what());
     }
 
     return 0;

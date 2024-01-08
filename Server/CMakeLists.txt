@@ -6,8 +6,12 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 project(Server LANGUAGES CXX)
 
 file(GLOB_RECURSE src
-    "src/*.cpp"
-    "src/*.hpp"
+    src/Main.cpp
+    src/UDPSocket.cpp
+    src/UDPSocket.hpp
+    src/Game.cpp
+    src/Game.hpp
 )
 
 add_executable(${PROJECT_NAME} ${src})
+target_link_libraries(${PROJECT_NAME} PRIVATE pthread)

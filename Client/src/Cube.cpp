@@ -34,8 +34,9 @@ void Cube::Draw(const Camera& camera) const
 
 void Cube::DrawLit(const Camera& camera, const std::unique_ptr<Cube>& lightSource) const
 {
-    m_Shader->Bind();
     auto lightPos = lightSource->GetModelMatrix()[3];
+
+    m_Shader->Bind();
     m_Shader->Set3f("viewPos", camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
     m_Shader->Set3f("lightPos", lightPos.x, lightPos.y, lightPos.z);
     m_Shader->Set3f("objectColor", Color.r, Color.g, Color.b);
