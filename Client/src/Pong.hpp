@@ -23,7 +23,6 @@ private:
     void SocketReader();
     void SocketSender();
     void UpdateBall(f64 deltaTimeSeconds);
-
     bool OnKeyEvent(Event& e);
     f64 GetElapsedSinceLastUpdate();
 private:
