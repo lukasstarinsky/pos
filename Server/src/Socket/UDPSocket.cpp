@@ -51,7 +51,7 @@ int UDPSocketServer::GetSocket() const
 // Client
 bool UDPSocketClient::TryReadData(int server, std::string& data, bool peek)
 {
-    char buffer[1024];
+    char buffer[128];
     memset(buffer, 0, sizeof(buffer));
 
     int flags = peek ? MSG_PEEK : 0;

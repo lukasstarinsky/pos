@@ -60,8 +60,8 @@ class Cube
 public:
     Cube(bool light = false);
 
-    void Draw(const Camera& camera) const;
-    void DrawLit(const Camera& camera, const std::unique_ptr<Cube>& lightSource) const;
+    void Draw(const Camera& camera, std::mutex& mutex) const;
+    void DrawLit(const Camera& camera, const std::unique_ptr<Cube>& lightSource, std::mutex& mutex) const;
 
     void SetScale(const glm::vec3& scale);
     void SetPosition(const glm::vec3& position);

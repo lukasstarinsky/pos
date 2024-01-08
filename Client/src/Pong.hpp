@@ -31,6 +31,7 @@ private:
     u8 m_TopIndex, m_BottomIndex, m_RightIndex, m_LeftIndex, m_FloorIndex, m_Player;
     std::unique_ptr<Cube> m_Ball;
     std::unique_ptr<Cube> m_Players[2];
+    u8 m_Player1Score = 0, m_Player2Score = 0;
     std::unique_ptr<Camera> m_Camera;
 
     std::unique_ptr<UDPSocket> m_Socket;

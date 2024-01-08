@@ -20,27 +20,38 @@ Cube::Cube(bool light)
     }
 }
 
-void Cube::Draw(const Camera& camera) const
+void Cube::Draw(const Camera& camera, std::mutex& mutex) const
 {
+    mutex.lock();
+    glm::vec3 color = Color;
+    glm::mat4 model = GetModelMatrix();
+    mutex.unlock();
+
     m_Shader->Bind();
-    m_Shader->SetMat4f("model", GetModelMatrix());
+    m_Shader->SetMat4f("model", model);
     m_Shader->SetMat4f("view", camera.GetViewMatrix());
     m_Shader->SetMat4f("projection", camera.GetProjectionMatrix());
-    m_Shader->Set3f("lightColor", Color.r, Color.g, Color.b);
+    m_Shader->Set3f("lightColor", color.r, color.g, color.b);
     m_CubeVA->Bind();
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
-void Cube::DrawLit(const Camera& camera, const std::unique_ptr<Cube>& lightSource) const
+void Cube::DrawLit(const Camera& camera, const std::unique_ptr<Cube>& lightSource, std::mutex& mutex) const
 {
+    mutex.lock();
+    glm::mat4 model = lightSource->GetModelMatrix();
+    glm::vec3 lightPos = model[3];
+    glm::vec3 color = Color;
+    glm::vec3 lightSourceColor = lightSource->Color;
+    mutex.unlock();
+
     m_Shader->Bind();
-    auto lightPos = lightSource->GetModelMatrix()[3];
     m_Shader->Set3f("viewPos", camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
     m_Shader->Set3f("lightPos", lightPos.x, lightPos.y, lightPos.z);
-    m_Shader->Set3f("objectColor", Color.r, Color.g, Color.b);
-    m_Shader->Set3f("lightColor", lightSource->Color.r, lightSource->Color.g, lightSource->Color.b);
-    m_Shader->SetMat4f("model", GetModelMatrix());
+    m_Shader->Set3f("objectColor", color.r, color.g, color.b);
+    m_Shader->Set3f("lightColor", lightSourceColor.r, lightSourceColor.g, lightSourceColor.b);
+    m_Shader->SetMat4f("model", model);
     m_Shader->SetMat4f("view", camera.GetViewMatrix());
     m_Shader->SetMat4f("projection", camera.GetProjectionMatrix());
     m_CubeVA->Bind();

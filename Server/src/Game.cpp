@@ -172,7 +172,7 @@ void Game::UpdateState()
             std::cout << "Server terminating...\n";
             return;
         }
-        else if (data.starts_with("BALL-"))
+        else if (data.starts_with("BALL-") || data == "RANDOM" || data == "0+" || data == "1+")
         {
             m_SocketClient->SendData(m_SocketServer->GetSocket(), data, m_Players[1]->SockAddr);
         }

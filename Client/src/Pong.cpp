@@ -170,6 +170,14 @@ void Pong::SocketReader()
         {
             m_Ball->SetRandomColor();
         }
+        else if (m_Player == 1 && data == "0+")
+        {
+            m_Player1Score++;
+        }
+        else if (m_Player == 1 && data == "1+")
+        {
+            m_Player2Score++;
+        }
         else if (m_Player == 1 && data.starts_with("BALL-"))
         {
             std::string coords = data.substr(5);
@@ -267,14 +275,29 @@ void Pong::UpdateBall(f64 deltaTimeSeconds) {
         return;
     }
 
-    // Left & right wall
-    if (Cube::CheckCollision(*m_Ball, *m_Map[m_LeftIndex]) || Cube::CheckCollision(*m_Ball, *m_Map[m_RightIndex]))
+    // Left wall
+    if (Cube::CheckCollision(*m_Ball, *m_Map[m_LeftIndex]))
     {
         direction = GetRandomDirection();
         m_Ball->Position.x = 0.0f;
         m_Ball->Position.z = 0.0f;
         m_Ball->SetRandomColor();
         m_SendQueue.Push("RANDOM");
+        m_SendQueue.Push("1+");
+        m_Player2Score++;
+        return;
+    }
+
+    // Right wall
+    if (Cube::CheckCollision(*m_Ball, *m_Map[m_RightIndex]))
+    {
+        direction = GetRandomDirection();
+        m_Ball->Position.x = 0.0f;
+        m_Ball->Position.z = 0.0f;
+        m_Ball->SetRandomColor();
+        m_SendQueue.Push("RANDOM");
+        m_SendQueue.Push("0+");
+        m_Player1Score++;
         return;
     }
 
@@ -308,15 +331,13 @@ void Pong::OnRender()
     Renderer::SetClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     Renderer::ClearBuffer();
 
-    m_Mutex.lock();
-    m_Ball->Draw(*m_Camera);
-    m_Players[0]->DrawLit(*m_Camera, m_Ball);
-    m_Players[1]->DrawLit(*m_Camera, m_Ball);
+    m_Ball->Draw(*m_Camera, m_Mutex);
+    m_Players[0]->DrawLit(*m_Camera, m_Ball, m_Mutex);
+    m_Players[1]->DrawLit(*m_Camera, m_Ball, m_Mutex);
     for (const auto &item: m_Map)
     {
-        item->DrawLit(*m_Camera, m_Ball);
+        item->DrawLit(*m_Camera, m_Ball, m_Mutex);
     }
-    m_Mutex.unlock();
 }
 
 bool Pong::IsBallOutOfBounds() const
@@ -331,10 +352,30 @@ bool Pong::IsBallOutOfBounds() const
 
 void Pong::OnImGUIRender()
 {
-    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-    ImGui::Begin("Debug");
-    {
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImVec2 work_pos = viewport->WorkPos;
+    ImVec2 window_pos, window_pos_pivot;
+    window_pos.x = (work_pos.x + 10.0f);
+    window_pos.y = (work_pos.y + 10.0f);
+    window_pos_pivot.x = 0.0f;
+    window_pos_pivot.y = 0.0f;
+    ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+    ImGui::SetNextWindowBgAlpha(0.35f);
 
+    if (ImGui::Begin("Pong", nullptr, flags))
+    {
+        ImGui::Text("Pong");
+        ImGui::Separator();
+
+        m_Mutex.lock();
+        ImGui::Text(std::format("Status: {}", (m_IsGameStarted ? "Game in progress..." : "Waiting for players...")).c_str());
+
+        int you = m_Player == 0 ? m_Player1Score : m_Player2Score;
+        int opponent = m_Player == 0 ? m_Player2Score : m_Player1Score;
+        m_Mutex.unlock();
+
+        ImGui::Text(std::format("Score: You: {} Opponent: {}", you, opponent).c_str());
     }
     ImGui::End();
 }
