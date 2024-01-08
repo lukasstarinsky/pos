@@ -166,7 +166,7 @@ void Pong::SocketReader()
 
 void Pong::OnUpdate(f64 deltaTimeSeconds)
 {
-    u8 playerIndex;
+    /*u8 playerIndex;
     {
         std::unique_lock<std::mutex> lock(m_Mutex);
         if (!m_IsGameRunning)
@@ -174,14 +174,14 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
             return;
         }
         playerIndex = m_Player;
-    }
+    }*/
 
     static f32 playerSpeed = 120.0f;
 
     bool leftInput = Input::IsKeyDown(Key::LeftArrow) || Input::IsKeyDown(Key::A);
     bool rightInput = Input::IsKeyDown(Key::RightArrow) || Input::IsKeyDown(Key::D);
 
-    if (playerIndex == 0 && leftInput || playerIndex == 1 && rightInput)
+    if (m_Player == 0 && leftInput || m_Player == 1 && rightInput)
     {
         f32 oldZ = m_Players[m_Player]->Position.z;
         m_Players[m_Player]->Position.z -= playerSpeed * (f32)deltaTimeSeconds;
@@ -191,9 +191,13 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
             m_Players[m_Player]->Position.z = oldZ;
         }
 
-        m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
+        if (GetElapsedSinceLastUpdate() >= 16)
+        {
+            m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
+            m_LastDataSent = Platform::GetTimeMillis();
+        }
     }
-    else if (playerIndex == 0 && rightInput || playerIndex == 1 && leftInput)
+    else if (m_Player == 0 && rightInput || m_Player == 1 && leftInput)
     {
         f32 oldZ = m_Players[m_Player]->Position.z;
         m_Players[m_Player]->Position.z += playerSpeed * (f32)deltaTimeSeconds;
@@ -203,7 +207,18 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
             m_Players[m_Player]->Position.z = oldZ;
         }
 
+        if (GetElapsedSinceLastUpdate() >= 16)
+        {
+            m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
+            m_LastDataSent = Platform::GetTimeMillis();
+        }
+
+    }
+
+    if (GetElapsedSinceLastUpdate() >= 128)
+    {
         m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
+        m_LastDataSent = Platform::GetTimeMillis();
     }
 
     UpdateBall(deltaTimeSeconds);
@@ -316,4 +331,10 @@ void Pong::OnImGUIRender()
 void Pong::OnResize()
 {
     m_Camera->SetViewport(m_Properties.WindowWidth, m_Properties.WindowHeight);
+}
+
+f64 Pong::GetElapsedSinceLastUpdate()
+{
+    auto time = Platform::GetTimeMillis();
+    return time - m_LastDataSent;
 }
