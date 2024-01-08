@@ -2,6 +2,8 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=clion+all,c++
 
 Dokumentacia.docx
+Build/
+
 ### C++ ###
 # Prerequisites
 *.d
@@ -16,19 +18,9 @@ Dokumentacia.docx
 *.gch
 *.pch
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
 # Fortran module files
 *.mod
 *.smod
-
-# Executables
-*.exe
-*.out
-*.app
 
 ### CLion+all ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider

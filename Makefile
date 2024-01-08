@@ -22,9 +22,11 @@ Client: $(CLIENT_OBJS)
 ifeq ($(OS), Windows_NT)
 	-@mkdir .\Build\Client
 	-@xcopy /E /I /Y .\Client\assets .\Build\Client\assets
+	-@xcopy /E /I /Y .\Libs .\Build\Client
 else
 	-@mkdir -p ./Build/Client
 	-@cp -rf ./Client/assets ./Build/Client/assets
+	-@cp -rf ./Libs ./Build/Client
 endif
 	gcc -std=c++23 $(CLIENT_INC) $^ -o ./Build/Client/$@ $(CLIENT_LIBS)
 
