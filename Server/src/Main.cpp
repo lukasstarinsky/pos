@@ -12,8 +12,12 @@ void ConnectionHandler(const std::unique_ptr<Game>& game)
 {
     while (true)
     {
-        g_Mutex.lock();
-        if (game->GetGameState() == GameState::Connecting && game->GetPlayerCount() != 2)
+        std::unique_lock<std::mutex> lock(g_Mutex);
+        if (game->GetGameState() == GameState::Terminate)
+        {
+            break;
+        }
+        else if (game->GetGameState() == GameState::Connecting && game->GetPlayerCount() != 2)
         {
             game->ConnectPlayer();
         }
@@ -21,7 +25,7 @@ void ConnectionHandler(const std::unique_ptr<Game>& game)
         {
             game->StartGame();
         }
-        g_Mutex.unlock();
+        lock.unlock();
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
@@ -32,21 +36,20 @@ int main()
     auto client = std::make_unique<UDPSocketClient>();
     auto game = std::make_unique<Game>(server.get(), client.get());
 
-    // Todo better threading?
     std::thread connectionHandler(ConnectionHandler, std::ref(game));
     while (true)
     {
-        g_Mutex.lock();
-        game->UpdateState();
-
-        if (game->GetGameState() == GameState::Started)
+        std::unique_lock<std::mutex> lock(g_Mutex);
+        if (game->GetGameState() == GameState::Terminate)
         {
-            game->CheckForDisconnect(PLAYER_TIMEOUT_SECONDS);
+            break;
         }
-        g_Mutex.unlock();
-
+        game->UpdateState();
+        game->CheckForDisconnect(PLAYER_TIMEOUT_SECONDS);
+        lock.unlock();
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+    connectionHandler.join();
 
     return 0;
 }

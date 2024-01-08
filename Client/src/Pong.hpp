@@ -23,6 +23,8 @@ private:
     void SocketReader();
     void SocketSender();
     void UpdateBall(f64 deltaTimeSeconds);
+
+    bool OnKeyEvent(Event& e);
     f64 GetElapsedSinceLastUpdate();
 private:
     std::vector<std::unique_ptr<Cube>> m_Map;
@@ -39,6 +41,6 @@ private:
 
     f64 m_LastDataSent = 0.0f;
 
-    bool m_IsGameRunning = false;
+    bool m_IsGameStarted = false;
     bool m_ShouldStop = false;
 };

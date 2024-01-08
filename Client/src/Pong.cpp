@@ -76,6 +76,8 @@ Pong::Pong(const ApplicationProperties& appProperties)
     m_Socket->SendData("JOIN");
     m_ReadThread = std::thread(&Pong::SocketReader, this);
     m_SendThread = std::thread(&Pong::SocketSender, this);
+
+    SET_EVENT_LISTENER(EventCategory::KeyEvent, Pong::OnKeyEvent);
 }
 
 Pong::~Pong()
@@ -126,14 +128,20 @@ void Pong::SocketReader()
         lock.unlock();
 
         std::string data = m_Socket->ReadData();
+        if (data == "QUIT")
+        {
+            Shutdown();
+            break;
+        }
         lock.lock();
         if (data == "START")
         {
-            m_IsGameRunning = true;
+            m_IsGameStarted = true;
         }
-        else if (data == "QUIT")
+        else if (data == "PAUSE")
         {
-            Shutdown();
+            m_IsGameStarted = false;
+            m_Ball->SetPosition({0.0f, 3.0f, 0.0f});
         }
         else if (data.starts_with("ID-"))
         {
@@ -166,16 +174,6 @@ void Pong::SocketReader()
 
 void Pong::OnUpdate(f64 deltaTimeSeconds)
 {
-    /*u8 playerIndex;
-    {
-        std::unique_lock<std::mutex> lock(m_Mutex);
-        if (!m_IsGameRunning)
-        {
-            return;
-        }
-        playerIndex = m_Player;
-    }*/
-
     static f32 playerSpeed = 120.0f;
 
     bool leftInput = Input::IsKeyDown(Key::LeftArrow) || Input::IsKeyDown(Key::A);
@@ -190,12 +188,6 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
         {
             m_Players[m_Player]->Position.z = oldZ;
         }
-
-        if (GetElapsedSinceLastUpdate() >= 16)
-        {
-            m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
-            m_LastDataSent = Platform::GetTimeMillis();
-        }
     }
     else if (m_Player == 0 && rightInput || m_Player == 1 && leftInput)
     {
@@ -206,22 +198,22 @@ void Pong::OnUpdate(f64 deltaTimeSeconds)
         {
             m_Players[m_Player]->Position.z = oldZ;
         }
-
-        if (GetElapsedSinceLastUpdate() >= 16)
-        {
-            m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
-            m_LastDataSent = Platform::GetTimeMillis();
-        }
-
     }
 
-    if (GetElapsedSinceLastUpdate() >= 128)
+    if (GetElapsedSinceLastUpdate() >= 16)
     {
         m_SendQueue.Push(std::format("{}Z-{}", m_Player, m_Players[m_Player]->Position.z));
         m_LastDataSent = Platform::GetTimeMillis();
     }
 
-    UpdateBall(deltaTimeSeconds);
+    m_Mutex.lock();
+    bool updateBall = m_IsGameStarted;
+    m_Mutex.unlock();
+
+    if (updateBall)
+    {
+        UpdateBall(deltaTimeSeconds);
+    }
 }
 
 glm::vec3 GetRandomDirection()
@@ -337,4 +329,19 @@ f64 Pong::GetElapsedSinceLastUpdate()
 {
     auto time = Platform::GetTimeMillis();
     return time - m_LastDataSent;
+}
+
+bool Pong::OnKeyEvent(Event& e)
+{
+    const auto& keyEvent = e.As<const KeyEvent&>();
+
+    if (keyEvent.GetType() == KeyEventType::Press)
+    {
+        if (keyEvent.GetKey() == Key::Escape)
+        {
+            m_SendQueue.Push("TERMINATE");
+        }
+    }
+
+    return true;
 }

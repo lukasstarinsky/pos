@@ -7,7 +7,8 @@
 enum class GameState
 {
     Connecting = 0,
-    Started
+    Started,
+    Terminate
 };
 
 struct Player

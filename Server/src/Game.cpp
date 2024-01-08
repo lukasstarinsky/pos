@@ -4,10 +4,6 @@
 
 static bool CompareAdresses(const sockaddr_in& addr1, const sockaddr_in& addr2)
 {
-//    std::cout << addr1.sin_addr.s_addr << ": " << addr1.sin_port << std::endl;
-//    std::cout << addr2.sin_addr.s_addr << ": " << addr2.sin_port << std::endl;
-//    std::cout << "###################################################################\n";
-
     return ((addr1.sin_addr.s_addr == addr2.sin_addr.s_addr) && (addr1.sin_port == addr2.sin_port));
 }
 
@@ -65,12 +61,26 @@ void Game::ConnectPlayer()
 
 void Game::DisconnectPlayer(int ID)
 {
-    if (m_Players[ID] != nullptr)
+    if (m_Players[ID] == nullptr)
     {
-        delete m_Players[ID];
-        m_Players[ID] = nullptr;
-        m_GameState = GameState::Connecting;
-        std::cout << "Player #" << ID << " disconnected (" << GetPlayerCount() << "/2)...\n";
+        return;
+    }
+
+    delete m_Players[ID];
+    m_Players[ID] = nullptr;
+    std::cout << "Player #" << ID << " disconnected (" << GetPlayerCount() << "/2)...\n";
+
+    if (m_GameState == GameState::Terminate)
+    {
+        return;
+    }
+
+    for (Player* player: m_Players)
+    {
+        if (player)
+        {
+            m_SocketClient->SendData(m_SocketServer->GetSocket(), "PAUSE", player->SockAddr);
+        }
     }
 }
 
@@ -107,14 +117,10 @@ bool Game::CheckForDisconnect(int timeoutSeconds)
             {
                 m_SocketClient->SendData(m_SocketServer->GetSocket(), "QUIT", player->SockAddr);
                 DisconnectPlayer(i);
+                m_GameState = GameState::Connecting;
                 ++disconnected;
             }
         }
-    }
-
-    if (disconnected > 0)
-    {
-        m_GameState = GameState::Connecting;
     }
 
     return disconnected > 0;
@@ -139,6 +145,7 @@ void Game::UpdateState()
         if (data == "0Q" || data == "1Q")
         {
             DisconnectPlayer(data[0] - '0');
+            m_GameState = GameState::Connecting;
             return;
         }
         else if (data.starts_with("0Z-"))
@@ -150,6 +157,24 @@ void Game::UpdateState()
         {
             m_Players[1]->LastUpdate = std::chrono::steady_clock::now();
             m_SocketClient->SendData(m_SocketServer->GetSocket(), data, m_Players[0]->SockAddr);
+        }
+        else if (data == "TERMINATE")
+        {
+            for (int i = 0; i < m_Players.size(); ++i)
+            {
+                if (m_Players[i])
+                {
+                    m_SocketClient->SendData(m_SocketServer->GetSocket(), "QUIT", m_Players[i]->SockAddr);
+                    DisconnectPlayer(i);
+                }
+            }
+            m_GameState = GameState::Terminate;
+            std::cout << "Server terminating...\n";
+            return;
+        }
+        else if (data.starts_with("BALL-"))
+        {
+            m_SocketClient->SendData(m_SocketServer->GetSocket(), data, m_Players[1]->SockAddr);
         }
     }
 
