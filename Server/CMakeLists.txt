@@ -14,3 +14,4 @@ file(GLOB_RECURSE src
 )
 
 add_executable(${PROJECT_NAME} ${src})
+target_link_libraries(${PROJECT_NAME} PRIVATE pthread)

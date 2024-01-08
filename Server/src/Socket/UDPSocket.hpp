@@ -19,7 +19,7 @@ class UDPSocketClient
 public:
     UDPSocketClient() = default;
 
-    [[ nodiscard ]] bool TryReadData(int server, std::string& data);
+    bool TryReadData(int server, std::string& data, bool peek = false);
     void SendData(int server, const std::string& data, const sockaddr_in& sockAddr) const;
     sockaddr_in GetSockAddr() const;
 private:

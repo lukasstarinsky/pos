@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
 #include "Socket/UDPSocket.hpp"
 
 enum class GameState
@@ -20,15 +21,17 @@ class Game
 {
 public:
     Game(UDPSocketServer* socketServer, UDPSocketClient* socketClient);
+    ~Game();
 
-    int GetPlayerCount() const;
-    GameState GetGameState() const;
+    int GetPlayerCount();
+    GameState GetGameState();
     void ConnectPlayer();
+    void DisconnectPlayer(int ID);
     void StartGame();
     bool CheckForDisconnect(int timeoutSeconds);
     void UpdateState();
 private:
-    std::vector<Player> m_Players;
+    std::array<Player*, 2> m_Players = {nullptr, nullptr };
     UDPSocketServer* m_SocketServer;
     UDPSocketClient* m_SocketClient;
     GameState m_GameState = GameState::Connecting;

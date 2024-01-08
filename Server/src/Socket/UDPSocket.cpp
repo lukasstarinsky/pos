@@ -49,11 +49,13 @@ int UDPSocketServer::GetSocket() const
 }
 
 // Client
-bool UDPSocketClient::TryReadData(int server, std::string& data)
+bool UDPSocketClient::TryReadData(int server, std::string& data, bool peek)
 {
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
-    if (recvfrom(server, buffer, sizeof(buffer), 0, (sockaddr*)&m_SockAddr, &m_SockAddrLen) <= 0)
+
+    int flags = peek ? MSG_PEEK : 0;
+    if (recvfrom(server, buffer, sizeof(buffer), flags, (sockaddr*)&m_SockAddr, &m_SockAddrLen) <= 0)
     {
         return false;
     }

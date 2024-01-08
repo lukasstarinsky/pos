@@ -73,13 +73,14 @@ Pong::Pong(const ApplicationProperties& appProperties)
 
     // Socket
     m_Socket = std::make_unique<UDPSocket>("158.193.128.160", 12694, UDPSocketType::NON_BLOCKING);
-    m_Socket->SendData("join");
+    m_Socket->SendData("JOIN");
     m_ReadThread = std::thread(&Pong::SocketReader, this);
     m_SendThread = std::thread(&Pong::SocketSender, this);
 }
 
 Pong::~Pong()
 {
+    m_SendQueue.Push(std::format("{}Q", m_Player));
     m_Mutex.lock();
     m_ShouldStop = true;
     m_Mutex.unlock();
@@ -91,14 +92,6 @@ void Pong::SocketSender()
 {
     while (true)
     {
-        std::unique_lock<std::mutex> lock(m_Mutex);
-        if (m_ShouldStop)
-        {
-            IGNIS_INFO("Shutting down SocketSender thread...");
-            break;
-        }
-        lock.unlock();
-
         std::queue<std::string> queue;
         m_SendQueue.Swap(queue);
 
@@ -109,6 +102,13 @@ void Pong::SocketSender()
             m_Socket->SendData(data);
         }
 
+        std::unique_lock<std::mutex> lock(m_Mutex);
+        if (m_ShouldStop)
+        {
+            IGNIS_INFO("Shutting down SocketSender thread...");
+            break;
+        }
+        lock.unlock();
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }

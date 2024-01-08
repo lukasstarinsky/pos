@@ -2,28 +2,75 @@
 #include <iostream>
 #include "Game.hpp"
 
+static bool CompareAdresses(const sockaddr_in& addr1, const sockaddr_in& addr2)
+{
+//    std::cout << addr1.sin_addr.s_addr << ": " << addr1.sin_port << std::endl;
+//    std::cout << addr2.sin_addr.s_addr << ": " << addr2.sin_port << std::endl;
+//    std::cout << "###################################################################\n";
+
+    return ((addr1.sin_addr.s_addr == addr2.sin_addr.s_addr) && (addr1.sin_port == addr2.sin_port));
+}
+
 Game::Game(UDPSocketServer* socketServer, UDPSocketClient* socketClient)
     : m_SocketServer(socketServer), m_SocketClient(socketClient)
 {
 
 }
 
+Game::~Game()
+{
+    for (Player* player: m_Players)
+    {
+        if (player)
+        {
+            delete player;
+        }
+    }
+}
+
 void Game::ConnectPlayer()
 {
     std::string data;
-    if (m_SocketClient->TryReadData(m_SocketServer->GetSocket(), data))
+    if (m_SocketClient->TryReadData(m_SocketServer->GetSocket(), data, true))
     {
-        if (data == "join")
+        if (data == "JOIN")
         {
-            Player player = {};
-            player.LastUpdate = std::chrono::steady_clock::now();
-            player.SockAddr = m_SocketClient->GetSockAddr();
-            player.ID = static_cast<int>(m_Players.size());
-            m_Players.emplace_back(player);
-            std::cout << "Player connected (" << m_Players.size() << "/2).\n";
+            for (Player* player: m_Players)
+            {
+                if (player && CompareAdresses(player->SockAddr, m_SocketClient->GetSockAddr()))
+                {
+                    std::string discard;
+                    m_SocketClient->TryReadData(m_SocketServer->GetSocket(), discard);
 
-            m_SocketClient->SendData(m_SocketServer->GetSocket(), "ID-" + std::to_string(player.ID), player.SockAddr);
+                    return;
+                }
+            }
+
+            Player* player = new Player();
+            player->LastUpdate = std::chrono::steady_clock::now();
+            player->SockAddr = m_SocketClient->GetSockAddr();
+            player->ID = !m_Players[0] ? 0 : !m_Players[1] ? 1 : -1;
+            if (player->ID == -1)
+            {
+                return;
+            }
+
+            m_Players[player->ID] = player;
+
+            std::cout << "Player connected (" << GetPlayerCount() << "/2).\n";
+            m_SocketClient->SendData(m_SocketServer->GetSocket(), "ID-" + std::to_string(player->ID), player->SockAddr);
         }
+    }
+}
+
+void Game::DisconnectPlayer(int ID)
+{
+    if (m_Players[ID] != nullptr)
+    {
+        delete m_Players[ID];
+        m_Players[ID] = nullptr;
+        m_GameState = GameState::Connecting;
+        std::cout << "Player #" << ID << " disconnected (" << GetPlayerCount() << "/2)...\n";
     }
 }
 
@@ -31,66 +78,102 @@ void Game::StartGame()
 {
     m_GameState = GameState::Started;
 
-    for (auto& player: m_Players)
+    for (Player* player: m_Players)
     {
-        player.LastUpdate = std::chrono::steady_clock::now();
-        m_SocketClient->SendData(m_SocketServer->GetSocket(), "START", player.SockAddr);
+        if (player)
+        {
+            player->LastUpdate = std::chrono::steady_clock::now();
+            m_SocketClient->SendData(m_SocketServer->GetSocket(), "START", player->SockAddr);
+        }
     }
+
+    std::cout << "Game started!\n";
     m_LastUpdate = std::chrono::steady_clock::now();
 }
 
 bool Game::CheckForDisconnect(int timeoutSeconds)
 {
-    unsigned erased = std::erase_if(m_Players, [&](const Player& player) {
-        const auto now = std::chrono::steady_clock::now();
-        const std::chrono::duration<double> diff = now - player.LastUpdate;
+    auto now = std::chrono::steady_clock::now();
 
-        if (diff.count() >= timeoutSeconds)
-        {
-            m_SocketClient->SendData(m_SocketServer->GetSocket(), "QUIT", player.SockAddr);
-        }
-
-        return diff.count() >= timeoutSeconds;
-    });
-
-    if (erased > 0)
+    int disconnected = 0;
+    for (int i = 0; i < m_Players.size(); ++i)
     {
-        m_GameState = GameState::Connecting;
-        std::cout << erased << " player(s) disconnected (" << m_Players.size() << "/2)...\n";
+        Player* player = m_Players[i];
+
+        if (player)
+        {
+            std::chrono::duration<double> diff = now - player->LastUpdate;
+            if (diff.count() >= timeoutSeconds)
+            {
+                m_SocketClient->SendData(m_SocketServer->GetSocket(), "QUIT", player->SockAddr);
+                DisconnectPlayer(i);
+                ++disconnected;
+            }
+        }
     }
 
-    return erased > 0;
+    if (disconnected > 0)
+    {
+        m_GameState = GameState::Connecting;
+    }
+
+    return disconnected > 0;
 }
 
 void Game::UpdateState()
 {
     std::string data;
 
-    if (m_SocketClient->TryReadData(m_SocketServer->GetSocket(), data))
+    if (m_SocketClient->TryReadData(m_SocketServer->GetSocket(), data, true))
     {
-        if (data.starts_with("0Z-"))
+        if (data == "JOIN" && m_GameState != GameState::Started)
         {
-            m_Players[0].LastUpdate = std::chrono::steady_clock::now();
-            m_SocketClient->SendData(m_SocketServer->GetSocket(), data, m_Players[1].SockAddr);
+            return;
+        }
+        else
+        {
+            std::string discard;
+            m_SocketClient->TryReadData(m_SocketServer->GetSocket(), discard);
+        }
+
+        if (data == "0Q" || data == "1Q")
+        {
+            DisconnectPlayer(data[0] - '0');
+            return;
+        }
+        else if (data.starts_with("0Z-"))
+        {
+            m_Players[0]->LastUpdate = std::chrono::steady_clock::now();
+            m_SocketClient->SendData(m_SocketServer->GetSocket(), data, m_Players[1]->SockAddr);
         }
         else if (data.starts_with("1Z-"))
         {
-            m_Players[1].LastUpdate = std::chrono::steady_clock::now();
-            m_SocketClient->SendData(m_SocketServer->GetSocket(), data, m_Players[0].SockAddr);
+            m_Players[1]->LastUpdate = std::chrono::steady_clock::now();
+            m_SocketClient->SendData(m_SocketServer->GetSocket(), data, m_Players[0]->SockAddr);
         }
     }
 
+    // Todo update ball
     auto time = std::chrono::steady_clock::now();
     float deltaTime = (time - m_LastUpdate).count(); // Elapsed time since last this code was run
     m_LastUpdate = time;
 }
 
-int Game::GetPlayerCount() const
+int Game::GetPlayerCount()
 {
-    return m_Players.size();
+    int playerCount = 0;
+    for (const Player* player : m_Players)
+    {
+        if (player != nullptr)
+        {
+            playerCount++;
+        }
+    }
+
+    return playerCount;
 }
 
-GameState Game::GetGameState() const
+GameState Game::GetGameState()
 {
     return m_GameState;
 }
